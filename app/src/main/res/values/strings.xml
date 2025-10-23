@@ -1,3 +1,48 @@
 <resources>
     <string name="app_name">LiftLog</string>
+
+    <!-- Login -->
+    <string name="login_title">¡Bienvenido!</string>
+    <string name="login_subtitle">Inicia sesión para continuar</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="no_account">¿No tienes cuenta?</string>
+    <string name="register_link">Regístrate</string>
+
+    <!-- Register -->
+    <string name="register_title">Crear Cuenta</string>
+    <string name="register_subtitle">Completa tus datos para registrarte</string>
+    <string name="name_hint">Nombre completo</string>
+    <string name="confirm_password_hint">Confirmar contraseña</string>
+    <string name="register_button">Registrarse</string>
+    <string name="have_account">¿Ya tienes cuenta?</string>
+    <string name="login_link">Inicia Sesión</string>
+
+    <!-- Exercises -->
+    <string name="exercises_title">Ejercicios</string>
+    <string name="exercises_subtitle">Selecciona un ejercicio para comenzar</string>
+    <string name="complete_exercise">Completar Ejercicio</string>
+    <string name="notes_hint">Notas (opcional)</string>
+
+    <!-- Routines -->
+    <string name="routines_title">Mis Rutinas</string>
+    <string name="routines_subtitle">Historial de ejercicios completados</string>
+    <string name="no_routines">Sin rutinas aún</string>
+    <string name="no_routines_message">Completa ejercicios para verlos aquí</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Perfil</string>
+    <string name="statistics_title">Estadísticas</string>
+    <string name="favorite_exercises">Ejercicios Favoritos</string>
+    <string name="logout_button">Cerrar Sesión</string>
+    <string name="member_since">Miembro desde</string>
+
+    <!-- General -->
+    <string name="minutes">minutos</string>
+    <string name="calories">calorías</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Eliminar</string>
+    <string name="confirm">Confirmar</string>
 </resources>
+

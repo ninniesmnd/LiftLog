@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LiftLog"
+rootProject.name = "aplicacionPrueba"
 include(":app")
  
