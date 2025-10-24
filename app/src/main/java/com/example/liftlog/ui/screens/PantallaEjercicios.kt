@@ -6,22 +6,29 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.repository.AppDatabase
 import com.example.liftlog.repository.ExerciseRepository
-import com.example.liftlog.viewmodel.ExerciseViewModelFactory
 import com.example.liftlog.viewmodel.ExerciseViewModel
+import com.example.liftlog.viewmodel.ExerciseViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,105 +49,97 @@ fun PantallaEjercicios(userId: Int) {
 
     val exercises by viewModel.exercises.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-
-    var selectedCategory by remember { mutableStateOf("Todos") }
-    var showDialog by remember { mutableStateOf(false) }
     var selectedExercise by remember { mutableStateOf<Ejercicio?>(null) }
 
-    val categories = listOf("Todos", "Cardio", "Fuerza", "Flexibilidad")
-    val primaryColor = Color(0xFFFFCB74)
-    val darkColor = Color(0xFF2C2C2C)
+    if (selectedExercise == null) {
+        var selectedCategory by remember { mutableStateOf("Todos") }
+        val categories = listOf("Todos", "Cardio", "Fuerza", "Flexibilidad")
+        val primaryColor = Color(0xFFFFCB74)
+        val darkColor = Color(0xFF2C2C2C)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        // Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
-            shadowElevation = 4.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "Ejercicios",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = darkColor
-                )
-                Text(
-                    text = "Selecciona un ejercicio para comenzar",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-        }
-
-        // Filtros de categoría
-        LazyRow(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
         ) {
-            items(categories) { category ->
-                FilterChip(
-                    selected = selectedCategory == category,
-                    onClick = {
-                        selectedCategory = category
-                        viewModel.filterByCategory(category)
-                    },
-                    label = { Text(category) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = primaryColor,
-                        selectedLabelColor = darkColor,
-                        containerColor = Color.White,
-                        labelColor = Color.Gray
+            // Header
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 4.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    Text(
+                        text = "Ejercicios",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = darkColor
                     )
-                )
-            }
-        }
-
-        // Lista de ejercicios
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = primaryColor)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(exercises) { exercise ->
-                    ExerciseCard(
-                        exercise = exercise,
-                        onClick = {
-                            selectedExercise = exercise
-                            showDialog = true
-                        }
+                    Text(
+                        text = "Selecciona un ejercicio para comenzar",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
-        }
-    }
 
-    // Dialog para completar ejercicio
-    if (showDialog && selectedExercise != null) {
-        CompleteExerciseDialog(
-            exercise = selectedExercise!!,
-            onDismiss = { showDialog = false },
-            onComplete = { notes ->
-                viewModel.completeExercise(selectedExercise!!, notes)
-                showDialog = false
+            // Filtros de categoría
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(categories) { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = {
+                            selectedCategory = category
+                            viewModel.filterByCategory(category)
+                        },
+                        label = { Text(category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = primaryColor,
+                            selectedLabelColor = darkColor,
+                            containerColor = Color.White,
+                            labelColor = Color.Gray
+                        )
+                    )
+                }
             }
+
+            // Lista de ejercicios
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = primaryColor)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(exercises) { exercise ->
+                        ExerciseCard(
+                            exercise = exercise,
+                            onClick = {
+                                selectedExercise = exercise
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        PantallaDetalleEjercicio(
+            exercise = selectedExercise!!,
+            onBack = { selectedExercise = null }
         )
     }
 }
@@ -236,61 +235,191 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CompleteExerciseDialog(
+fun PantallaDetalleEjercicio(
     exercise: Ejercicio,
-    onDismiss: () -> Unit,
-    onComplete: (String) -> Unit
+    onBack: () -> Unit,
 ) {
-    var notes by remember { mutableStateOf("") }
+    var peso by remember { mutableStateOf("") }
+    var series by remember { mutableStateOf("") }
+    var repeticiones by remember { mutableStateOf("") }
+    var tiempo by remember { mutableStateOf("") }
+
+    val rutinas = emptyList<String>()
+    val hayRutinas = rutinas.isNotEmpty()
     val primaryColor = Color(0xFFFFCB74)
     val darkColor = Color(0xFF2C2C2C)
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Completar: ${exercise.nombre}",
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column {
-                Text(
-                    text = "¿Completaste este ejercicio?",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .background(Color(0xFFF5F5F5))
 
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Placeholder for muscle group image
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            val imagePlaceholderText = "Imagen de ${exercise.nombre}"
+            Text(text = imagePlaceholderText, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = exercise.nombre,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = darkColor
+        )
+        Text(
+            text = exercise.descripcion,
+            fontSize = 16.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Input Fields
+        when (exercise.categoria) {
+            "Fuerza" -> {
                 OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Notas (opcional)") },
-                    placeholder = { Text("¿Cómo te fue?") },
+                    value = peso,
+                    onValueChange = { peso = it },
+                    label = { Text("Peso (kg)") },
                     modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryColor,
                         focusedLabelColor = primaryColor,
                         cursorColor = primaryColor
-                    ),
-                    maxLines = 3
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = series,
+                    onValueChange = { series = it },
+                    label = { Text("Series") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        focusedLabelColor = primaryColor,
+                        cursorColor = primaryColor
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = repeticiones,
+                    onValueChange = { repeticiones = it },
+                    label = { Text("Repeticiones") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        focusedLabelColor = primaryColor,
+                        cursorColor = primaryColor
+                    )
                 )
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onComplete(notes) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
-                    contentColor = darkColor
+            "Cardio", "Flexibilidad" -> {
+                OutlinedTextField(
+                    value = tiempo,
+                    onValueChange = { tiempo = it },
+                    label = { Text("Tiempo (minutos)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        focusedLabelColor = primaryColor,
+                        cursorColor = primaryColor
+                    )
                 )
-            ) {
-                Text("Completar", fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color.Gray)
             }
         }
-    )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Routine Section
+        Text(
+            "Agregar a Rutina",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = darkColor
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (!hayRutinas) {
+            Text(
+                "No hay rutinas creadas. Ve a la sección de rutinas para crear una.",
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        var expanded by remember { mutableStateOf(false) }
+        val selectedRutina = "Seleccionar rutina"
+
+        ExposedDropdownMenuBox(
+            expanded = expanded && hayRutinas,
+            onExpandedChange = { expanded = !expanded && hayRutinas },
+        ) {
+            OutlinedTextField(
+                readOnly = true,
+                value = selectedRutina,
+                onValueChange = {},
+                label = { Text("Rutina") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded && hayRutinas) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                enabled = hayRutinas,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = Color.Gray.copy(alpha = 0.5f),
+                    disabledLabelColor = Color.Gray.copy(alpha = 0.5f),
+                    disabledTextColor = Color.Gray.copy(alpha = 0.5f)
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded && hayRutinas,
+                onDismissRequest = { expanded = false }
+            ) {
+                // This will be empty for now
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { /* Implementar lógica */ },
+            enabled = hayRutinas,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = primaryColor,
+                contentColor = darkColor,
+                disabledContainerColor = Color.Gray.copy(alpha = 0.3f),
+                disabledContentColor = Color.Gray.copy(alpha = 0.7f)
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Agregar a Rutina", fontWeight = FontWeight.Bold)
+        }
+    }
 }
