@@ -1,5 +1,6 @@
 package com.example.liftlog.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,12 +19,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.liftlog.R
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.repository.AppDatabase
 import com.example.liftlog.repository.ExerciseRepository
@@ -265,17 +269,42 @@ fun PantallaDetalleEjercicio(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Placeholder for muscle group image
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
-        ) {
-            val imagePlaceholderText = "Imagen de ${exercise.nombre}"
-            Text(text = imagePlaceholderText, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        val imageRes = when (exercise.nombre) {
+            "Flexiones" -> R.drawable.flexion
+            "Plancha" -> R.drawable.plancha
+            "Sentadillas" -> R.drawable.sentadilla
+            "Correr" -> R.drawable.correr
+            "Ciclismo" -> R.drawable.ciclismo
+            "Saltar la cuerda" -> R.drawable.saltar_cuerda
+            "Yoga" -> R.drawable.yoga
+            "Pilates" -> R.drawable.pilates
+            "Estiramientos" -> R.drawable.estiramientos
+            else -> null
+        }
+
+        if (imageRes != null) {
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = exercise.nombre,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            // Placeholder for muscle group image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                val imagePlaceholderText = "Imagen de ${exercise.nombre}"
+                Text(text = imagePlaceholderText, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -300,7 +329,12 @@ fun PantallaDetalleEjercicio(
             "Fuerza" -> {
                 OutlinedTextField(
                     value = peso,
-                    onValueChange = { peso = it },
+                    onValueChange = { newValue ->
+                        val filteredValue = newValue.filter { it.isDigit() || it == '.' }
+                        if (filteredValue.count { it == '.' } <= 1) {
+                            peso = filteredValue
+                        }
+                    },
                     label = { Text("Peso (kg)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -313,7 +347,9 @@ fun PantallaDetalleEjercicio(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = series,
-                    onValueChange = { series = it },
+                    onValueChange = { newValue ->
+                        series = newValue.filter { it.isDigit() }
+                    },
                     label = { Text("Series") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -326,7 +362,9 @@ fun PantallaDetalleEjercicio(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = repeticiones,
-                    onValueChange = { repeticiones = it },
+                    onValueChange = { newValue ->
+                        repeticiones = newValue.filter { it.isDigit() }
+                    },
                     label = { Text("Repeticiones") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -340,7 +378,9 @@ fun PantallaDetalleEjercicio(
             "Cardio", "Flexibilidad" -> {
                 OutlinedTextField(
                     value = tiempo,
-                    onValueChange = { tiempo = it },
+                    onValueChange = { newValue ->
+                        tiempo = newValue.filter { it.isDigit() }
+                    },
                     label = { Text("Tiempo (minutos)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

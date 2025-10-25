@@ -173,7 +173,7 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                         StatCard(
                             icon = "🔥",
                             value = if (stats.totalRutinas > 0) (stats.totalCalorias / stats.totalRutinas).toString() else "0",
-                            label = "Calorías Promedio",
+                            label = "Calorías Prom.",
                             modifier = Modifier.weight(1f),
                             color = Color(0xFFFF7474)
                         )
@@ -183,7 +183,7 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                             value = if (stats.totalRutinas > 0)
                                 (stats.totalMinutos / stats.totalRutinas).toString()
                             else "0",
-                            label = "Promedio por rutina",
+                            label = "Ejer. Promedio",
                             modifier = Modifier.weight(1f),
                             color = Color(0xFF9D74FF)
                         )
@@ -322,7 +322,8 @@ fun StatCard(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Surface(
                 shape = CircleShape,
@@ -352,7 +353,8 @@ fun StatCard(
             Text(
                 text = label,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                textAlign = TextAlign.Center
             )
         }
     }
