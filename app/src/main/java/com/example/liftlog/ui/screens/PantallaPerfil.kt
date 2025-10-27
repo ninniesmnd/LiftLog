@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.liftlog.model.Usuario
 import com.example.liftlog.repository.AppDatabase
-import com.example.liftlog.repository.ExerciseRepository
-import com.example.liftlog.viewmodel.ExerciseViewModel
-import com.example.liftlog.viewmodel.ExerciseViewModelFactory
+import com.example.liftlog.repository.EjercicioRepository
+import com.example.liftlog.viewmodel.EjercicioViewModel
+import com.example.liftlog.viewmodel.EjercicioViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,12 +30,12 @@ import java.util.*
 fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
-    val repository = ExerciseRepository(
+    val repository = EjercicioRepository(
         database.exerciseDao(),
         database.completedRoutineDao()
     )
-    val viewModel: ExerciseViewModel = viewModel(
-        factory = ExerciseViewModelFactory(repository)
+    val viewModel: EjercicioViewModel = viewModel(
+        factory = EjercicioViewModelFactory(repository)
     )
 
     LaunchedEffect(user.id) {

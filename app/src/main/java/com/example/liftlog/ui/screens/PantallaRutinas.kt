@@ -10,113 +10,109 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.liftlog.model.RutinaCompletada
-import com.example.liftlog.repository.AppDatabase
-import com.example.liftlog.repository.ExerciseRepository
-import com.example.liftlog.viewmodel.ExerciseViewModel
-import com.example.liftlog.viewmodel.ExerciseViewModelFactory
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.liftlog.model.Ejercicio
+import com.example.liftlog.model.RutinaConEjercicios
+import com.example.liftlog.viewmodel.RutinaViewModel
 
 @Composable
-fun PantallaRutinas(userId: Int) {
-    val context = LocalContext.current
-    val database = AppDatabase.getDatabase(context)
-    val repository = ExerciseRepository(
-        database.exerciseDao(),
-        database.completedRoutineDao()
-    )
-    val viewModel: ExerciseViewModel = viewModel(
-        factory = ExerciseViewModelFactory(repository)
-    )
-
-    LaunchedEffect(userId) {
-        viewModel.setCurrentUser(userId)
-    }
-
-    val completedRoutines by viewModel.completedRoutines.collectAsState()
-    val primaryColor = Color(0xFFFFCB74)
+fun PantallaRutinas(
+    viewModel: RutinaViewModel,
+    onGoToCreateRoutine: () -> Unit
+) {
+    val rutinas by viewModel.rutinasConEjercicios.collectAsState()
     val darkColor = Color(0xFF2C2C2C)
+    val primaryColor = Color(0xFFFFCB74)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        // Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
-            shadowElevation = 4.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onGoToCreateRoutine() },
+                containerColor = primaryColor,
+                contentColor = darkColor
             ) {
-                Text(
-                    text = "Mis Rutinas",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = darkColor
-                )
-                Text(
-                    text = "Historial de ejercicios completados",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                Text(text = "➕", fontSize = 24.sp)
             }
         }
-
-        // Contenido
-        if (completedRoutines.isEmpty()) {
-            // Estado vacío
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFFF5F5F5))
+        ) {
+            // Header
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 4.dp
             ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
+                    modifier = Modifier.padding(20.dp)
                 ) {
                     Text(
-                        text = "📋",
-                        fontSize = 64.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = "Sin rutinas aún",
-                        fontSize = 20.sp,
+                        text = "Mis Rutinas",
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = darkColor,
-                        textAlign = TextAlign.Center
+                        color = darkColor
                     )
                     Text(
-                        text = "Completa ejercicios para verlos aquí",
+                        text = "Aquí puedes ver y crear tus rutinas",
                         fontSize = 14.sp,
                         color = Color.Gray,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
-        } else {
-            // Lista de rutinas
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(completedRoutines) { routine ->
-                    RoutineCard(
-                        routine = routine,
-                        onDelete = { viewModel.deleteRoutine(routine) }
-                    )
+
+            // Contenido
+            if (rutinas.isEmpty()) {
+                // Estado vacío
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Text(
+                            text = "🧘",
+                            fontSize = 64.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Text(
+                            text = "No has creado rutinas",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = darkColor,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Toca el botón '+' para crear tu primera rutina",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            } else {
+                // Lista de rutinas
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(rutinas) { rutinaConEjercicios ->
+                        RutinaCard(
+                            rutinaConEjercicios = rutinaConEjercicios,
+                            onDelete = { viewModel.deleteRoutine(rutinaConEjercicios.rutina) }
+                        )
+                    }
                 }
             }
         }
@@ -124,13 +120,9 @@ fun PantallaRutinas(userId: Int) {
 }
 
 @Composable
-fun RoutineCard(routine: RutinaCompletada, onDelete: () -> Unit) {
-    val primaryColor = Color(0xFFFFCB74)
+fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
     val darkColor = Color(0xFF2C2C2C)
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("es", "ES"))
-    val formattedDate = dateFormat.format(Date(routine.fecha))
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -150,84 +142,59 @@ fun RoutineCard(routine: RutinaCompletada, onDelete: () -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = routine.nombreEjercicio,
-                        fontSize = 18.sp,
+                        text = rutinaConEjercicios.rutina.nombre,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = darkColor
                     )
                     Text(
-                        text = formattedDate,
-                        fontSize = 12.sp,
+                        text = rutinaConEjercicios.rutina.descripcion,
+                        fontSize = 14.sp,
                         color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                     )
                 }
-
-                IconButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Text(text = "🗑️", fontSize = 20.sp)
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Text(text = "🗑️", fontSize = 24.sp)
                 }
             }
 
-            Divider(
-                modifier = Modifier.padding(vertical = 12.dp),
-                color = Color.LightGray
+            Divider(color = Color.LightGray)
+
+            Text(
+                text = "Ejercicios:",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = darkColor,
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatItem(
-                    icon = "⏱️",
-                    value = "${routine.duracionMinutos}",
-                    label = "minutos"
+            if (rutinaConEjercicios.ejercicios.isEmpty()) {
+                Text(
+                    text = "Esta rutina no tiene ejercicios asignados.",
+                    fontSize = 14.sp,
+                    color = Color.Gray
                 )
-
-                StatItem(
-                    icon = "🔥",
-                    value = "${routine.caloriasQuemadas}",
-                    label = "calorías"
-                )
-            }
-
-            if (routine.notas.isNotEmpty()) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    color = primaryColor.copy(alpha = 0.1f)
-                ) {
-                    Text(
-                        text = routine.notas,
-                        fontSize = 14.sp,
-                        color = darkColor,
-                        modifier = Modifier.padding(12.dp)
-                    )
+            } else {
+                rutinaConEjercicios.ejercicios.forEach {
+                    EjercicioItem(ejercicio = it)
                 }
             }
         }
     }
 
-    // Dialog de confirmación para eliminar
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar rutina") },
-            text = { Text("¿Estás seguro de eliminar esta rutina?") },
+            title = { Text("Eliminar Rutina") },
+            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.") },
             confirmButton = {
                 Button(
                     onClick = {
                         onDelete()
                         showDeleteDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
-                        contentColor = Color.White
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
                 ) {
                     Text("Eliminar")
                 }
@@ -242,22 +209,30 @@ fun RoutineCard(routine: RutinaCompletada, onDelete: () -> Unit) {
 }
 
 @Composable
-fun StatItem(icon: String, value: String, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+fun EjercicioItem(ejercicio: Ejercicio) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = icon, fontSize = 32.sp)
         Text(
-            text = value,
+            text = "💪",
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF2C2C2C),
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(end = 12.dp)
         )
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
+        Column {
+            Text(
+                text = ejercicio.nombre,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF2C2C2C) // Color oscuro para el texto
+            )
+            Text(
+                text = "${ejercicio.duracionMinutos} min | ${ejercicio.calorias} kcal",
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+        }
     }
 }
