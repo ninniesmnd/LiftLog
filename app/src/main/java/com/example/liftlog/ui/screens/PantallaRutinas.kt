@@ -108,7 +108,10 @@ fun PantallaRutinas(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(rutinas) { rutinaConEjercicios ->
-                        RutinaCard(rutinaConEjercicios = rutinaConEjercicios)
+                        RutinaCard(
+                            rutinaConEjercicios = rutinaConEjercicios,
+                            onDelete = { viewModel.deleteRoutine(rutinaConEjercicios.rutina) }
+                        )
                     }
                 }
             }
@@ -117,8 +120,9 @@ fun PantallaRutinas(
 }
 
 @Composable
-fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios) {
+fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
     val darkColor = Color(0xFF2C2C2C)
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -131,18 +135,29 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios) {
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                text = rutinaConEjercicios.rutina.nombre,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = darkColor
-            )
-            Text(
-                text = rutinaConEjercicios.rutina.descripcion,
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = rutinaConEjercicios.rutina.nombre,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = darkColor
+                    )
+                    Text(
+                        text = rutinaConEjercicios.rutina.descripcion,
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    )
+                }
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Text(text = "🗑️", fontSize = 24.sp)
+                }
+            }
 
             Divider(color = Color.LightGray)
 
@@ -167,6 +182,30 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios) {
             }
         }
     }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar Rutina") },
+            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar", color = Color.Gray)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -186,7 +225,8 @@ fun EjercicioItem(ejercicio: Ejercicio) {
             Text(
                 text = ejercicio.nombre,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF2C2C2C) // Color oscuro para el texto
             )
             Text(
                 text = "${ejercicio.duracionMinutos} min | ${ejercicio.calorias} kcal",
