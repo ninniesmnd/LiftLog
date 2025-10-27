@@ -156,9 +156,9 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                         )
 
                         StatCard(
-                            icon = "⏱️",
-                            value = stats.totalMinutos.toString(),
-                            label = "Minutos",
+                            icon = "❤️",
+                            value = stats.rutinasFavoritas.firstOrNull()?.nombreEjercicio ?: "-",
+                            label = "Ejercicio Favorito",
                             modifier = Modifier.weight(1f),
                             color = Color(0xFF74D7FF)
                         )
@@ -172,8 +172,8 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                     ) {
                         StatCard(
                             icon = "🔥",
-                            value = stats.totalCalorias.toString(),
-                            label = "Calorías",
+                            value = if (stats.totalRutinas > 0) (stats.totalCalorias / stats.totalRutinas).toString() else "0",
+                            label = "Calorías Prom.",
                             modifier = Modifier.weight(1f),
                             color = Color(0xFFFF7474)
                         )
@@ -183,7 +183,7 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                             value = if (stats.totalRutinas > 0)
                                 (stats.totalMinutos / stats.totalRutinas).toString()
                             else "0",
-                            label = "Promedio por rutina",
+                            label = "Ejer. Promedio",
                             modifier = Modifier.weight(1f),
                             color = Color(0xFF9D74FF)
                         )
@@ -228,8 +228,7 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                                             modifier = Modifier.padding(end = 12.dp)
                                         )
 
-                                        // Explicitly check for null before displaying the Text.
-                                        Text(text = user.nombre)
+                                        Text(text = ejercicio.nombreEjercicio)
                                     }
 
                                     if (index < stats.rutinasFavoritas.size - 1) {
@@ -323,7 +322,8 @@ fun StatCard(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Surface(
                 shape = CircleShape,
@@ -333,7 +333,7 @@ fun StatCard(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
-                ) {
+                    ) {
                     Text(
                         text = icon,
                         fontSize = 28.sp
@@ -341,21 +341,20 @@ fun StatCard(
                 }
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = value,
-                fontSize = 24.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2C2C2C),
-                modifier = Modifier.padding(top = 12.dp)
+                color = Color(0xFF2C2C2C)
             )
 
             Text(
                 text = label,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp),
-                minLines = 2,
-                maxLines = 2
+                textAlign = TextAlign.Center
             )
         }
     }
