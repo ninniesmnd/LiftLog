@@ -34,11 +34,11 @@ class RutinaRepository(private val rutinaDAO: RutinaDAO) {
     }
 
     @Transaction
-    suspend fun insertRutinaWithEjercicios(rutina: Rutina, ejercicioIds: List<Int>) {
+    suspend fun insertRutinaWithEjercicios(rutina: Rutina, ejercicios: List<RutinaEjercicioCrossRef>) {
         val rutinaId = rutinaDAO.insertRutina(rutina)
-        ejercicioIds.forEach { ejercicioId ->
+        ejercicios.forEach { crossRef ->
             rutinaDAO.insertRutinaEjercicioCrossRef(
-                RutinaEjercicioCrossRef(rutinaId = rutinaId.toInt(), ejercicioId = ejercicioId)
+                crossRef.copy(rutinaId = rutinaId.toInt())
             )
         }
     }

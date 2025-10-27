@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.Rutina
 import com.example.liftlog.model.RutinaConEjercicios
+import com.example.liftlog.model.RutinaEjercicioCrossRef
 import com.example.liftlog.repository.EjercicioRepository
 import com.example.liftlog.repository.RutinaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,10 +53,10 @@ class RutinaViewModel(
         }
     }
 
-    fun saveRoutine(nombre: String, descripcion: String, selectedExerciseIds: List<Int>, onSaveFinished: () -> Unit) {
+    fun saveRoutine(nombre: String, descripcion: String, ejercicios: List<RutinaEjercicioCrossRef>, onSaveFinished: () -> Unit) {
         viewModelScope.launch {
             val nuevaRutina = Rutina(nombre = nombre, descripcion = descripcion)
-            rutinaRepository.insertRutinaWithEjercicios(nuevaRutina, selectedExerciseIds)
+            rutinaRepository.insertRutinaWithEjercicios(nuevaRutina, ejercicios)
             onSaveFinished()
         }
     }

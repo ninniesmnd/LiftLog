@@ -487,8 +487,18 @@ fun PantallaDetalleEjercicio(
 
             Button(
                 onClick = {
-                    selectedRutina?.let {
-                        rutinaViewModel.addEjercicioToRutina(it.id, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
+                    val isInvalid = when (exercise.categoria) {
+                        "Fuerza" -> peso.isBlank() || series.isBlank() || repeticiones.isBlank()
+                        "Cardio", "Flexibilidad" -> tiempo.isBlank()
+                        else -> false
+                    }
+
+                    if (isInvalid) {
+                        Toast.makeText(context, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        selectedRutina?.let {
+                            rutinaViewModel.addEjercicioToRutina(it.id, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
+                        }
                     }
                 },
                 enabled = hayRutinas && selectedRutina != null,
