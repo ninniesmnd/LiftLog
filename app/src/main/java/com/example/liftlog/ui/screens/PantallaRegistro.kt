@@ -108,9 +108,12 @@ fun PantallaRegistro(
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
 
@@ -125,9 +128,12 @@ fun PantallaRegistro(
                             .padding(bottom = 16.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
 
@@ -146,9 +152,12 @@ fun PantallaRegistro(
                             .padding(bottom = 16.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         ),
                         trailingIcon = {
                             TextButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -182,9 +191,12 @@ fun PantallaRegistro(
                             .padding(bottom = 8.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         ),
                         trailingIcon = {
                             TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {

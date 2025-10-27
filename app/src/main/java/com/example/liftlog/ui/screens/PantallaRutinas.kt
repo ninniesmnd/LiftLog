@@ -187,8 +187,8 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar Rutina") },
-            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.") },
+            title = { Text("Eliminar Rutina", color = Color(0xFF2C2C2C)) },
+            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.", color = Color(0xFF2C2C2C)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -211,6 +211,7 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
 
 @Composable
 fun EjercicioItem(ejercicio: Ejercicio, detalles: com.example.liftlog.model.RutinaEjercicioCrossRef? = null) {
+    val darkColor = Color(0xFF2C2C2C)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -227,7 +228,7 @@ fun EjercicioItem(ejercicio: Ejercicio, detalles: com.example.liftlog.model.Ruti
                 text = ejercicio.nombre,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF2C2C2C) // Color oscuro para el texto
+                color = darkColor
             )
 
             val detailsText = if (detalles != null) {

@@ -75,7 +75,15 @@ fun PantallaCrearRutina(
                 label = { Text("Nombre de la rutina") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = primaryColor, unfocusedBorderColor = Color.Gray)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = darkColor,
+                    unfocusedTextColor = darkColor,
+                    cursorColor = primaryColor,
+                    focusedBorderColor = primaryColor, 
+                    unfocusedBorderColor = Color.Gray,
+                    focusedLabelColor = primaryColor,
+                    unfocusedLabelColor = Color.Gray
+                )
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
@@ -86,7 +94,15 @@ fun PantallaCrearRutina(
                     .fillMaxWidth()
                     .height(120.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = primaryColor, unfocusedBorderColor = Color.Gray)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = darkColor,
+                    unfocusedTextColor = darkColor,
+                    cursorColor = primaryColor,
+                    focusedBorderColor = primaryColor, 
+                    unfocusedBorderColor = Color.Gray,
+                    focusedLabelColor = primaryColor,
+                    unfocusedLabelColor = Color.Gray
+                )
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text("Seleccionar Ejercicios:", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = darkColor)
@@ -146,7 +162,16 @@ fun PantallaCrearRutina(
                                             },
                                             label = { Text("Peso (kg)") },
                                             modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedTextColor = darkColor,
+                                                unfocusedTextColor = darkColor,
+                                                cursorColor = primaryColor,
+                                                focusedBorderColor = primaryColor,
+                                                unfocusedBorderColor = Color.Gray,
+                                                focusedLabelColor = primaryColor,
+                                                unfocusedLabelColor = Color.Gray
+                                            )
                                         )
                                         OutlinedTextField(
                                             value = detallesState.series,
@@ -155,7 +180,16 @@ fun PantallaCrearRutina(
                                             },
                                             label = { Text("Series") },
                                             modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedTextColor = darkColor,
+                                                unfocusedTextColor = darkColor,
+                                                cursorColor = primaryColor,
+                                                focusedBorderColor = primaryColor,
+                                                unfocusedBorderColor = Color.Gray,
+                                                focusedLabelColor = primaryColor,
+                                                unfocusedLabelColor = Color.Gray
+                                            )
                                         )
                                         OutlinedTextField(
                                             value = detallesState.repeticiones,
@@ -164,7 +198,16 @@ fun PantallaCrearRutina(
                                             },
                                             label = { Text("Reps") },
                                             modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedTextColor = darkColor,
+                                                unfocusedTextColor = darkColor,
+                                                cursorColor = primaryColor,
+                                                focusedBorderColor = primaryColor,
+                                                unfocusedBorderColor = Color.Gray,
+                                                focusedLabelColor = primaryColor,
+                                                unfocusedLabelColor = Color.Gray
+                                            )
                                         )
                                     }
                                     "Cardio", "Flexibilidad" -> {
@@ -175,7 +218,16 @@ fun PantallaCrearRutina(
                                             },
                                             label = { Text("Tiempo (min)") },
                                             modifier = Modifier.fillMaxWidth(),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedTextColor = darkColor,
+                                                unfocusedTextColor = darkColor,
+                                                cursorColor = primaryColor,
+                                                focusedBorderColor = primaryColor,
+                                                unfocusedBorderColor = Color.Gray,
+                                                focusedLabelColor = primaryColor,
+                                                unfocusedLabelColor = Color.Gray
+                                            )
                                         )
                                     }
                                 }

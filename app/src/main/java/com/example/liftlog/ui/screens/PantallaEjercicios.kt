@@ -299,7 +299,7 @@ fun PantallaDetalleEjercicio(
 
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = darkColor)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -374,9 +374,13 @@ fun PantallaDetalleEjercicio(
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = Color.Gray,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -389,9 +393,13 @@ fun PantallaDetalleEjercicio(
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = Color.Gray,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -402,11 +410,15 @@ fun PantallaDetalleEjercicio(
                         },
                         label = { Text("Repeticiones") },
                         modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = Color.Gray,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
                 }
@@ -420,9 +432,13 @@ fun PantallaDetalleEjercicio(
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
+                            cursorColor = primaryColor,
                             focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = Color.Gray,
                             focusedLabelColor = primaryColor,
-                            cursorColor = primaryColor
+                            unfocusedLabelColor = Color.Gray
                         )
                     )
                 }
@@ -462,18 +478,29 @@ fun PantallaDetalleEjercicio(
                         .menuAnchor(),
                     enabled = hayRutinas,
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = darkColor,
+                        unfocusedTextColor = darkColor,
+                        disabledTextColor = darkColor,
+                        cursorColor = primaryColor,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray,
                         disabledBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray,
                         disabledLabelColor = Color.Gray.copy(alpha = 0.5f),
-                        disabledTextColor = Color.Gray.copy(alpha = 0.5f)
+                        focusedTrailingIconColor = darkColor,
+                        unfocusedTrailingIconColor = darkColor,
+                        disabledTrailingIconColor = Color.Gray.copy(alpha = 0.7f)
                     )
                 )
                 ExposedDropdownMenu(
                     expanded = expanded && hayRutinas,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(Color.White) // Set background to white
                 ) {
                     rutinas.forEach { rutina ->
                         DropdownMenuItem(
-                            text = { Text(rutina.nombre) },
+                            text = { Text(rutina.nombre, color = darkColor) },
                             onClick = {
                                 selectedRutina = rutina
                                 expanded = false

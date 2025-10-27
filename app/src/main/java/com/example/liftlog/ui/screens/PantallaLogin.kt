@@ -102,6 +102,8 @@ fun PantallaLogin(
                             .padding(bottom = 16.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
                             cursorColor = primaryColor
@@ -123,6 +125,8 @@ fun PantallaLogin(
                             .padding(bottom = 8.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = darkColor,
+                            unfocusedTextColor = darkColor,
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
                             cursorColor = primaryColor
