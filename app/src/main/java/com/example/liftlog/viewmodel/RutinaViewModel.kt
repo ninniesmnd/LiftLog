@@ -66,7 +66,7 @@ class RutinaViewModel(
             if (rutinaConEjercicios.ejercicios.any { it.id == ejercicioId }) {
                 _addEjercicioResult.value = AddEjercicioResult.Error("El ejercicio ya existe en la rutina.")
             } else {
-                rutinaRepository.addEjercicioToRutina(rutinaId, ejercicioId)
+                rutinaRepository.addEjercicioToRutina(rutinaId, ejercicioId, series, repeticiones, peso, tiempo)
                 _addEjercicioResult.value = AddEjercicioResult.Success
             }
         }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.Rutina
@@ -16,11 +17,11 @@ import kotlinx.coroutines.launch
 
 /**
  * Base de datos Room de la aplicación
- * Versión 2: Se añaden las tablas de rutinas y su relación con ejercicios
+ * Versión 3: Se añaden campos a la tabla `rutina_ejercicio_cross_ref`
  */
 @Database(
     entities = [Usuario::class, Ejercicio::class, RutinaCompletada::class, Rutina::class, RutinaEjercicioCrossRef::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "fitness_app_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_2_3)
                     .addCallback(DatabaseCallback())
                     .build()
 
@@ -52,6 +53,15 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun destroyInstance() {
             INSTANCE = null
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE rutina_ejercicio_cross_ref ADD COLUMN series INTEGER")
+                database.execSQL("ALTER TABLE rutina_ejercicio_cross_ref ADD COLUMN repeticiones INTEGER")
+                database.execSQL("ALTER TABLE rutina_ejercicio_cross_ref ADD COLUMN peso REAL")
+                database.execSQL("ALTER TABLE rutina_ejercicio_cross_ref ADD COLUMN tiempo INTEGER")
+            }
         }
     }
 
@@ -88,9 +98,9 @@ abstract class AppDatabase : RoomDatabase() {
         suspend fun populateRutinas(rutinaDAO: RutinaDAO) {
             val rutinaId = 1
             rutinaDAO.insertRutina(Rutina(id = rutinaId, nombre = "Rutina de Fuerza para Principiantes", descripcion = "Una rutina básica para empezar a ganar fuerza."))
-            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 4)) // Flexiones
-            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 5)) // Sentadillas
-            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 6)) // Plancha
+            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 4, series = 3, repeticiones = 10, peso = 0.0, tiempo = null)) // Flexiones
+            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 5, series = 3, repeticiones = 12, peso = 20.0, tiempo = null)) // Sentadillas
+            rutinaDAO.insertRutinaEjercicioCrossRef(RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = 6, series = null, repeticiones = null, peso = null, tiempo = 60)) // Plancha
         }
     }
 }

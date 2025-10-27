@@ -117,7 +117,7 @@ fun PantallaPrincipalConNavegacion(
                     viewModel = viewModel,
                     onGoToCreateRoutine = onGoToCreateRoutine
                 )
-                2 -> PantallaPerfil(user = user, onLogout = onLogout)
+                2 -> PantallaPerfil(user = user, onLogout = onLogout, rutinaViewModel = viewModel)
             }
         }
     }

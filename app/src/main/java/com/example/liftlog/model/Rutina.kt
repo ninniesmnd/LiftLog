@@ -17,19 +17,30 @@ data class Rutina(
 @Entity(tableName = "rutina_ejercicio_cross_ref", primaryKeys = ["rutinaId", "ejercicioId"])
 data class RutinaEjercicioCrossRef(
     val rutinaId: Int,
-    val ejercicioId: Int
+    val ejercicioId: Int,
+    val series: Int? = null,
+    val repeticiones: Int? = null,
+    val peso: Double? = null,
+    val tiempo: Int? = null
 )
 
 data class RutinaConEjercicios(
     @Embedded val rutina: Rutina,
     @Relation(
         parentColumn = "id",
-        entityColumn = "id",
+        entity = Ejercicio::class,
         associateBy = Junction(
             value = RutinaEjercicioCrossRef::class,
             parentColumn = "rutinaId",
             entityColumn = "ejercicioId"
-        )
+        ),
+        entityColumn = "id"
     )
-    val ejercicios: List<Ejercicio>
+    val ejercicios: List<Ejercicio>,
+    @Relation(
+        parentColumn = "id",
+        entity = RutinaEjercicioCrossRef::class,
+        entityColumn = "rutinaId"
+    )
+    val detalles: List<RutinaEjercicioCrossRef>
 )

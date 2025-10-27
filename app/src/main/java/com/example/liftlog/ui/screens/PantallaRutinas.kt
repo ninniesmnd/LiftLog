@@ -176,8 +176,9 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
                     color = Color.Gray
                 )
             } else {
-                rutinaConEjercicios.ejercicios.forEach {
-                    EjercicioItem(ejercicio = it)
+                rutinaConEjercicios.ejercicios.forEach { ejercicio ->
+                    val detalles = rutinaConEjercicios.detalles.find { it.ejercicioId == ejercicio.id }
+                    EjercicioItem(ejercicio = ejercicio, detalles = detalles)
                 }
             }
         }
@@ -209,7 +210,7 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
 }
 
 @Composable
-fun EjercicioItem(ejercicio: Ejercicio) {
+fun EjercicioItem(ejercicio: Ejercicio, detalles: com.example.liftlog.model.RutinaEjercicioCrossRef? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,8 +229,23 @@ fun EjercicioItem(ejercicio: Ejercicio) {
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF2C2C2C) // Color oscuro para el texto
             )
+
+            val detailsText = if (detalles != null) {
+                when (ejercicio.categoria) {
+                    "Fuerza" -> {
+                        "${detalles.series} series de ${detalles.repeticiones} reps con ${detalles.peso} kg"
+                    }
+                    "Cardio", "Flexibilidad" -> {
+                        "${detalles.tiempo} minutos"
+                    }
+                    else -> "${ejercicio.duracionMinutos} min | ${ejercicio.calorias} kcal"
+                }
+            } else {
+                ejercicio.categoria
+            }
+
             Text(
-                text = "${ejercicio.duracionMinutos} min | ${ejercicio.calorias} kcal",
+                text = detailsText,
                 fontSize = 12.sp,
                 color = Color.Gray
             )

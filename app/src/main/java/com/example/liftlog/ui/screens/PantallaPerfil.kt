@@ -12,38 +12,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.liftlog.model.Usuario
-import com.example.liftlog.repository.AppDatabase
-import com.example.liftlog.repository.EjercicioRepository
-import com.example.liftlog.viewmodel.EjercicioViewModel
-import com.example.liftlog.viewmodel.EjercicioViewModelFactory
+import com.example.liftlog.viewmodel.RutinaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
-    val context = LocalContext.current
-    val database = AppDatabase.getDatabase(context)
-    val repository = EjercicioRepository(
-        database.exerciseDao(),
-        database.completedRoutineDao()
-    )
-    val viewModel: EjercicioViewModel = viewModel(
-        factory = EjercicioViewModelFactory(repository)
-    )
+fun PantallaPerfil(
+    user: Usuario,
+    onLogout: () -> Unit,
+    rutinaViewModel: RutinaViewModel
+) {
+    val rutinasConEjercicios by rutinaViewModel.rutinasConEjercicios.collectAsState()
 
-    LaunchedEffect(user.id) {
-        viewModel.setCurrentUser(user.id)
-    }
+    val totalRutinas = rutinasConEjercicios.size
+    val totalEjercicios = rutinasConEjercicios.sumOf { it.ejercicios.size }
+    val avgEjerciciosPorRutina = if (totalRutinas > 0) totalEjercicios.toDouble() / totalRutinas else 0.0
 
-    val userStats by viewModel.userStats.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val totalCalorias = rutinasConEjercicios.sumOf { it.ejercicios.sumOf { it.calorias } }
+    val avgCaloriasPorRutina = if (totalRutinas > 0) totalCalorias.toDouble() / totalRutinas else 0.0
+
+    val favoriteExercise = rutinasConEjercicios
+        .flatMap { it.ejercicios }
+        .groupingBy { it.nombre }
+        .eachCount()
+        .maxByOrNull { it.value }?.key ?: "-"
 
     val primaryColor = Color(0xFFFFCB74)
     val darkColor = Color(0xFF2C2C2C)
@@ -131,152 +128,49 @@ fun PantallaPerfil(user: Usuario, onLogout: () -> Unit) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = primaryColor)
-                }
-            } else {
-                userStats?.let { stats ->
-                    // Cards de estadísticas
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        StatCard(
-                            icon = "🏆",
-                            value = stats.totalRutinas.toString(),
-                            label = "Rutinas",
-                            modifier = Modifier.weight(1f),
-                            color = primaryColor
-                        )
+            // Cards de estadísticas
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard(
+                    icon = "🏆",
+                    value = totalRutinas.toString(),
+                    label = "Rutinas Creadas",
+                    modifier = Modifier.weight(1f),
+                    color = primaryColor
+                )
 
-                        StatCard(
-                            icon = "❤️",
-                            value = stats.rutinasFavoritas.firstOrNull()?.nombreEjercicio ?: "-",
-                            label = "Ejercicio Favorito",
-                            modifier = Modifier.weight(1f),
-                            color = Color(0xFF74D7FF)
-                        )
-                    }
+                StatCard(
+                    icon = "❤️",
+                    value = favoriteExercise,
+                    label = "Ejercicio Favorito",
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFF74D7FF)
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        StatCard(
-                            icon = "🔥",
-                            value = if (stats.totalRutinas > 0) (stats.totalCalorias / stats.totalRutinas).toString() else "0",
-                            label = "Calorías Prom.",
-                            modifier = Modifier.weight(1f),
-                            color = Color(0xFFFF7474)
-                        )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard(
+                    icon = "🔥",
+                    value = String.format("%.1f", avgCaloriasPorRutina),
+                    label = "Calorías Prom.",
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFFFF7474)
+                )
 
-                        StatCard(
-                            icon = "💪",
-                            value = if (stats.totalRutinas > 0)
-                                (stats.totalMinutos / stats.totalRutinas).toString()
-                            else "0",
-                            label = "Ejer. Promedio",
-                            modifier = Modifier.weight(1f),
-                            color = Color(0xFF9D74FF)
-                        )
-                    }
-
-                    // Ejercicios favoritos
-                    if (stats.rutinasFavoritas.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Text(
-                            text = "Ejercicios Favoritos",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = darkColor,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                stats.rutinasFavoritas.forEachIndexed { index, ejercicio ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    ) {
-                                        val medal = when (index) {
-                                            0 -> "🥇"
-                                            1 -> "🥈"
-                                            2 -> "🥉"
-                                            else -> "💪"
-                                        }
-
-                                        Text(
-                                            text = medal,
-                                            fontSize = 24.sp,
-                                            modifier = Modifier.padding(end = 12.dp)
-                                        )
-
-                                        Text(text = ejercicio.nombreEjercicio)
-                                    }
-
-                                    if (index < stats.rutinasFavoritas.size - 1) {
-                                        Divider(
-                                            modifier = Modifier.padding(vertical = 4.dp),
-                                            color = Color.LightGray
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } ?: run {
-                    // No hay estadísticas
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(32.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "📊",
-                                fontSize = 48.sp,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            Text(
-                                text = "Sin estadísticas aún",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = darkColor,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = "Completa ejercicios para ver tus estadísticas",
-                                fontSize = 14.sp,
-                                color = Color.Gray,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
-                    }
-                }
+                StatCard(
+                    icon = "💪",
+                    value = String.format("%.1f", avgEjerciciosPorRutina),
+                    label = "Ejer. Promedio",
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFF9D74FF)
+                )
             }
         }
 
@@ -333,7 +227,7 @@ fun StatCard(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
-                    ) {
+                ) {
                     Text(
                         text = icon,
                         fontSize = 28.sp

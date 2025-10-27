@@ -20,9 +20,16 @@ class RutinaRepository(private val rutinaDAO: RutinaDAO) {
         return rutinaDAO.getAllRutinas()
     }
 
-    suspend fun addEjercicioToRutina(rutinaId: Int, ejercicioId: Int) {
+    suspend fun addEjercicioToRutina(rutinaId: Int, ejercicioId: Int, series: Int?, repeticiones: Int?, peso: Double?, tiempo: Int?) {
         rutinaDAO.insertRutinaEjercicioCrossRef(
-            RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = ejercicioId)
+            RutinaEjercicioCrossRef(
+                rutinaId = rutinaId,
+                ejercicioId = ejercicioId,
+                series = series,
+                repeticiones = repeticiones,
+                peso = peso,
+                tiempo = tiempo
+            )
         )
     }
 
