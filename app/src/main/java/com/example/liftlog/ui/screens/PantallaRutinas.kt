@@ -1,5 +1,9 @@
 package com.example.liftlog.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +30,10 @@ fun PantallaRutinas(
     val rutinas by viewModel.rutinasConEjercicios.collectAsState()
     val darkColor = Color(0xFF2C2C2C)
     val primaryColor = Color(0xFFFFCB74)
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -108,10 +116,15 @@ fun PantallaRutinas(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(rutinas) { rutinaConEjercicios ->
-                        RutinaCard(
-                            rutinaConEjercicios = rutinaConEjercicios,
-                            onDelete = { viewModel.deleteRoutine(rutinaConEjercicios.rutina) }
-                        )
+                        AnimatedVisibility(
+                            visible = isVisible,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 500)) + slideInVertically(animationSpec = tween(durationMillis = 500), initialOffsetY = { it / 2 })
+                        ) {
+                            RutinaCard(
+                                rutinaConEjercicios = rutinaConEjercicios,
+                                onDelete = { viewModel.deleteRoutine(rutinaConEjercicios.rutina) }
+                            )
+                        }
                     }
                 }
             }
@@ -186,9 +199,10 @@ fun RutinaCard(rutinaConEjercicios: RutinaConEjercicios, onDelete: () -> Unit) {
 
     if (showDeleteDialog) {
         AlertDialog(
+            containerColor = Color.White,
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar Rutina", color = Color(0xFF2C2C2C)) },
-            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.", color = Color(0xFF2C2C2C)) },
+            title = { Text("Eliminar Rutina", color = darkColor) },
+            text = { Text("¿Estás seguro de que quieres eliminar la rutina '${rutinaConEjercicios.rutina.nombre}'? Esta acción no se puede deshacer.", color = darkColor) },
             confirmButton = {
                 Button(
                     onClick = {

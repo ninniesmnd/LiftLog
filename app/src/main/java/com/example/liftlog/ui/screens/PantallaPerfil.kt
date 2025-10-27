@@ -1,5 +1,10 @@
 package com.example.liftlog.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +26,7 @@ import com.example.liftlog.viewmodel.RutinaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun PantallaPerfil(
     user: Usuario,
@@ -47,6 +53,11 @@ fun PantallaPerfil(
 
     val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale("es", "ES"))
     val memberSince = dateFormat.format(Date(user.fechaRegistro))
+
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
 
     Column(
         modifier = Modifier
@@ -129,48 +140,55 @@ fun PantallaPerfil(
             )
 
             // Cards de estadísticas
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(durationMillis = 500)) + slideInVertically(animationSpec = tween(durationMillis = 500), initialOffsetY = { it / 2 })
             ) {
-                StatCard(
-                    icon = "🏆",
-                    value = totalRutinas.toString(),
-                    label = "Rutinas Creadas",
-                    modifier = Modifier.weight(1f),
-                    color = primaryColor
-                )
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatCard(
+                            icon = "🏆",
+                            value = totalRutinas.toString(),
+                            label = "Rutinas Creadas",
+                            modifier = Modifier.weight(1f),
+                            color = primaryColor
+                        )
 
-                StatCard(
-                    icon = "❤️",
-                    value = favoriteExercise,
-                    label = "Ejercicio Favorito",
-                    modifier = Modifier.weight(1f),
-                    color = Color(0xFF74D7FF)
-                )
-            }
+                        StatCard(
+                            icon = "❤️",
+                            value = favoriteExercise,
+                            label = "Ejercicio Favorito",
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF74D7FF)
+                        )
+                    }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    icon = "🔥",
-                    value = String.format("%.1f", avgCaloriasPorRutina),
-                    label = "Calorías Prom.",
-                    modifier = Modifier.weight(1f),
-                    color = Color(0xFFFF7474)
-                )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatCard(
+                            icon = "🔥",
+                            value = String.format("%.1f", avgCaloriasPorRutina),
+                            label = "Calorías Prom.",
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFFFF7474)
+                        )
 
-                StatCard(
-                    icon = "💪",
-                    value = String.format("%.1f", avgEjerciciosPorRutina),
-                    label = "Ejer. Promedio",
-                    modifier = Modifier.weight(1f),
-                    color = Color(0xFF9D74FF)
-                )
+                        StatCard(
+                            icon = "💪",
+                            value = String.format("%.1f", avgEjerciciosPorRutina),
+                            label = "Ejer. Promedio",
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF9D74FF)
+                        )
+                    }
+                }
             }
         }
 
