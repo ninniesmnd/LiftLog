@@ -112,7 +112,7 @@ fun PantallaPrincipalConNavegacion(
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
-                0 -> PantallaEjercicios(userId = user.id)
+                0 -> PantallaEjercicios(userId = user.id, rutinaViewModel = viewModel)
                 1 -> PantallaRutinas(
                     viewModel = viewModel,
                     onGoToCreateRoutine = onGoToCreateRoutine

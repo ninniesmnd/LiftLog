@@ -16,6 +16,16 @@ class RutinaRepository(private val rutinaDAO: RutinaDAO) {
         return rutinaDAO.getRutinaConEjercicios(rutinaId)
     }
 
+    fun getAllRutinas(): Flow<List<Rutina>> {
+        return rutinaDAO.getAllRutinas()
+    }
+
+    suspend fun addEjercicioToRutina(rutinaId: Int, ejercicioId: Int) {
+        rutinaDAO.insertRutinaEjercicioCrossRef(
+            RutinaEjercicioCrossRef(rutinaId = rutinaId, ejercicioId = ejercicioId)
+        )
+    }
+
     @Transaction
     suspend fun insertRutinaWithEjercicios(rutina: Rutina, ejercicioIds: List<Int>) {
         val rutinaId = rutinaDAO.insertRutina(rutina)

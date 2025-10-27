@@ -1,5 +1,6 @@
 package com.example.liftlog.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,12 +32,15 @@ import com.example.liftlog.R
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.repository.AppDatabase
 import com.example.liftlog.repository.EjercicioRepository
-import com.example.liftlog.viewmodel.EjercicioViewModelFactory
+import com.example.liftlog.viewmodel.AddEjercicioResult
 import com.example.liftlog.viewmodel.EjercicioViewModel
+import com.example.liftlog.viewmodel.EjercicioViewModelFactory
+import com.example.liftlog.viewmodel.RutinaViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaEjercicios(userId: Int) {
+fun PantallaEjercicios(userId: Int, rutinaViewModel: RutinaViewModel) {
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val repository = EjercicioRepository(
@@ -143,7 +147,8 @@ fun PantallaEjercicios(userId: Int) {
     } else {
         PantallaDetalleEjercicio(
             exercise = selectedExercise!!,
-            onBack = { selectedExercise = null }
+            onBack = { selectedExercise = null },
+            rutinaViewModel = rutinaViewModel
         )
     }
 }
@@ -244,222 +249,262 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
 fun PantallaDetalleEjercicio(
     exercise: Ejercicio,
     onBack: () -> Unit,
+    rutinaViewModel: RutinaViewModel
 ) {
     var peso by remember { mutableStateOf("") }
     var series by remember { mutableStateOf("") }
     var repeticiones by remember { mutableStateOf("") }
     var tiempo by remember { mutableStateOf("") }
 
-    val rutinas = emptyList<String>()
+    val rutinas by rutinaViewModel.rutinas.collectAsState()
     val hayRutinas = rutinas.isNotEmpty()
     val primaryColor = Color(0xFFFFCB74)
     val darkColor = Color(0xFF2C2C2C)
+    var selectedRutina by remember { mutableStateOf<com.example.liftlog.model.Rutina?>(null) }
+    var expanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .background(Color(0xFFF5F5F5))
+    val addEjercicioResult by rutinaViewModel.addEjercicioResult.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
+    LaunchedEffect(addEjercicioResult) {
+        when (val result = addEjercicioResult) {
+            is AddEjercicioResult.Success -> {
+                Toast.makeText(context, "Ejercicio \"${exercise.nombre}\" agregado exitosamente a la rutina.", Toast.LENGTH_SHORT).show()
+                rutinaViewModel.resetAddEjercicioResult()
+                onBack()
+            }
+            is AddEjercicioResult.Error -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(result.message)
+                }
+                rutinaViewModel.resetAddEjercicioResult()
+            }
+            is AddEjercicioResult.Idle -> {
+                // Do nothing
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val imageRes = when (exercise.nombre) {
-            "Flexiones" -> R.drawable.flexion
-            "Plancha" -> R.drawable.plancha
-            "Sentadillas" -> R.drawable.sentadilla
-            "Correr" -> R.drawable.correr
-            "Ciclismo" -> R.drawable.ciclismo
-            "Saltar la cuerda" -> R.drawable.saltar_cuerda
-            "Yoga" -> R.drawable.yoga
-            "Pilates" -> R.drawable.pilates
-            "Estiramientos" -> R.drawable.estiramientos
-            else -> null
-        }
-
-        if (imageRes != null) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = exercise.nombre,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            // Placeholder for muscle group image
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                val imagePlaceholderText = "Imagen de ${exercise.nombre}"
-                Text(text = imagePlaceholderText, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = exercise.nombre,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = darkColor
-        )
-        Text(
-            text = exercise.descripcion,
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Input Fields
-        when (exercise.categoria) {
-            "Fuerza" -> {
-                OutlinedTextField(
-                    value = peso,
-                    onValueChange = { newValue ->
-                        val filteredValue = newValue.filter { it.isDigit() || it == '.' }
-                        if (filteredValue.count { it == '.' } <= 1) {
-                            peso = filteredValue
-                        }
-                    },
-                    label = { Text("Peso (kg)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = primaryColor,
-                        focusedLabelColor = primaryColor,
-                        cursorColor = primaryColor
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = series,
-                    onValueChange = { newValue ->
-                        series = newValue.filter { it.isDigit() }
-                    },
-                    label = { Text("Series") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = primaryColor,
-                        focusedLabelColor = primaryColor,
-                        cursorColor = primaryColor
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = repeticiones,
-                    onValueChange = { newValue ->
-                        repeticiones = newValue.filter { it.isDigit() }
-                    },
-                    label = { Text("Repeticiones") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = primaryColor,
-                        focusedLabelColor = primaryColor,
-                        cursorColor = primaryColor
-                    )
-                )
-            }
-            "Cardio", "Flexibilidad" -> {
-                OutlinedTextField(
-                    value = tiempo,
-                    onValueChange = { newValue ->
-                        tiempo = newValue.filter { it.isDigit() }
-                    },
-                    label = { Text("Tiempo (minutos)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = primaryColor,
-                        focusedLabelColor = primaryColor,
-                        cursorColor = primaryColor
-                    )
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Routine Section
-        Text(
-            "Agregar a Rutina",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = darkColor
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (!hayRutinas) {
-            Text(
-                "No hay rutinas creadas. Ve a la sección de rutinas para crear una.",
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-
-        var expanded by remember { mutableStateOf(false) }
-        val selectedRutina = "Seleccionar rutina"
-
-        ExposedDropdownMenuBox(
-            expanded = expanded && hayRutinas,
-            onExpandedChange = { expanded = !expanded && hayRutinas },
-        ) {
-            OutlinedTextField(
-                readOnly = true,
-                value = selectedRutina,
-                onValueChange = {},
-                label = { Text("Rutina") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded && hayRutinas) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                enabled = hayRutinas,
-                colors = OutlinedTextFieldDefaults.colors(
-                    disabledBorderColor = Color.Gray.copy(alpha = 0.5f),
-                    disabledLabelColor = Color.Gray.copy(alpha = 0.5f),
-                    disabledTextColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-            ExposedDropdownMenu(
-                expanded = expanded && hayRutinas,
-                onDismissRequest = { expanded = false }
-            ) {
-                // This will be empty for now
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { /* Implementar lógica */ },
-            enabled = hayRutinas,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = primaryColor,
-                contentColor = darkColor,
-                disabledContainerColor = Color.Gray.copy(alpha = 0.3f),
-                disabledContentColor = Color.Gray.copy(alpha = 0.7f)
-            ),
-            shape = RoundedCornerShape(12.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(it)
+                .background(Color(0xFFF5F5F5))
+
         ) {
-            Text("Agregar a Rutina", fontWeight = FontWeight.Bold)
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val imageRes = when (exercise.nombre) {
+                "Flexiones" -> R.drawable.flexion
+                "Plancha" -> R.drawable.plancha
+                "Sentadillas" -> R.drawable.sentadilla
+                "Correr" -> R.drawable.correr
+                "Ciclismo" -> R.drawable.ciclismo
+                "Saltar la cuerda" -> R.drawable.saltar_cuerda
+                "Yoga" -> R.drawable.yoga
+                "Pilates" -> R.drawable.pilates
+                "Estiramientos" -> R.drawable.estiramientos
+                else -> null
+            }
+
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = exercise.nombre,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Placeholder for muscle group image
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val imagePlaceholderText = "Imagen de ${exercise.nombre}"
+                    Text(text = imagePlaceholderText, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = exercise.nombre,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = darkColor
+            )
+            Text(
+                text = exercise.descripcion,
+                fontSize = 16.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Input Fields
+            when (exercise.categoria) {
+                "Fuerza" -> {
+                    OutlinedTextField(
+                        value = peso,
+                        onValueChange = { newValue ->
+                            val filteredValue = newValue.filter { it.isDigit() || it == '.' }
+                            if (filteredValue.count { it == '.' } <= 1) {
+                                peso = filteredValue
+                            }
+                        },
+                        label = { Text("Peso (kg)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = series,
+                        onValueChange = { newValue ->
+                            series = newValue.filter { it.isDigit() }
+                        },
+                        label = { Text("Series") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = repeticiones,
+                        onValueChange = { newValue ->
+                            repeticiones = newValue.filter { it.isDigit() }
+                        },
+                        label = { Text("Repeticiones") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
+                    )
+                }
+                "Cardio", "Flexibilidad" -> {
+                    OutlinedTextField(
+                        value = tiempo,
+                        onValueChange = { newValue ->
+                            tiempo = newValue.filter { it.isDigit() }
+                        },
+                        label = { Text("Tiempo (minutos)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Routine Section
+            Text(
+                "Agregar a Rutina",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = darkColor
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (!hayRutinas) {
+                Text(
+                    "No hay rutinas creadas. Ve a la sección de rutinas para crear una.",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = expanded && hayRutinas,
+                onExpandedChange = { expanded = !expanded && hayRutinas },
+            ) {
+                OutlinedTextField(
+                    readOnly = true,
+                    value = selectedRutina?.nombre ?: "Seleccionar rutina",
+                    onValueChange = {},
+                    label = { Text("Rutina") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded && hayRutinas) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    enabled = hayRutinas,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = Color.Gray.copy(alpha = 0.5f),
+                        disabledLabelColor = Color.Gray.copy(alpha = 0.5f),
+                        disabledTextColor = Color.Gray.copy(alpha = 0.5f)
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded && hayRutinas,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    rutinas.forEach { rutina ->
+                        DropdownMenuItem(
+                            text = { Text(rutina.nombre) },
+                            onClick = {
+                                selectedRutina = rutina
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    selectedRutina?.let {
+                        rutinaViewModel.addEjercicioToRutina(it.id, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
+                    }
+                },
+                enabled = hayRutinas && selectedRutina != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryColor,
+                    contentColor = darkColor,
+                    disabledContainerColor = Color.Gray.copy(alpha = 0.3f),
+                    disabledContentColor = Color.Gray.copy(alpha = 0.7f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Agregar a Rutina", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
