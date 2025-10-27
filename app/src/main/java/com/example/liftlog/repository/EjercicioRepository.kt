@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 /**
  * Repositorio para manejar operaciones de ejercicios y rutinas
  */
-class ExerciseRepository(
+class EjercicioRepository(
     private val exerciseDao: EjercicioDAO,
     private val completedRoutineDao: CompletedRoutineDao
 ) {

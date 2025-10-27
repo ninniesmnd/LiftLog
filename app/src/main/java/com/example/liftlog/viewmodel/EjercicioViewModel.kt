@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.liftlog.model.RutinaCompletada
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.Estadisticas
-import com.example.liftlog.repository.ExerciseRepository
+import com.example.liftlog.repository.EjercicioRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel para manejar la lógica de ejercicios y rutinas
  */
-class ExerciseViewModel(
-    private val repository: ExerciseRepository
+class EjercicioViewModel(
+    private val ejercicioRepository: EjercicioRepository
 ) : ViewModel() {
 
     private val _exercises = MutableStateFlow<List<Ejercicio>>(emptyList())
@@ -48,7 +48,7 @@ class ExerciseViewModel(
      */
     private fun loadExercises() {
         viewModelScope.launch {
-            repository.getAllExercises().collect { exerciseList ->
+            ejercicioRepository.getAllExercises().collect { exerciseList ->
                 _exercises.value = exerciseList
             }
         }
@@ -59,7 +59,7 @@ class ExerciseViewModel(
      */
     private fun loadCompletedRoutines() {
         viewModelScope.launch {
-            repository.getCompletedRoutines(currentUserId).collect { routines ->
+            ejercicioRepository.getCompletedRoutines(currentUserId).collect { routines ->
                 _completedRoutines.value = routines
             }
         }
@@ -72,7 +72,7 @@ class ExerciseViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val stats = repository.getUserStats(currentUserId)
+                val stats = ejercicioRepository.getUserStats(currentUserId)
                 _userStats.value = stats
             } catch (e: Exception) {
                 _userStats.value = Estadisticas(0, 0, 0, emptyList())
@@ -88,7 +88,7 @@ class ExerciseViewModel(
     fun completeExercise(exercise: Ejercicio, notas: String = "") {
         viewModelScope.launch {
             _isLoading.value = true
-            repository.completeRoutine(currentUserId, exercise, notas)
+            ejercicioRepository.completeRoutine(currentUserId, exercise, notas)
             loadUserStats() // Actualizar estadísticas
             _isLoading.value = false
         }
@@ -99,7 +99,7 @@ class ExerciseViewModel(
      */
     fun deleteRoutine(routine: RutinaCompletada) {
         viewModelScope.launch {
-            repository.deleteCompletedRoutine(routine)
+            ejercicioRepository.deleteCompletedRoutine(routine)
             loadUserStats() // Actualizar estadísticas
         }
     }
@@ -110,11 +110,11 @@ class ExerciseViewModel(
     fun filterByCategory(categoria: String) {
         viewModelScope.launch {
             if (categoria == "Todos") {
-                repository.getAllExercises().collect { exerciseList ->
+                ejercicioRepository.getAllExercises().collect { exerciseList ->
                     _exercises.value = exerciseList
                 }
             } else {
-                repository.getExercisesByCategory(categoria).collect { exerciseList ->
+                ejercicioRepository.getExercisesByCategory(categoria).collect { exerciseList ->
                     _exercises.value = exerciseList
                 }
             }
@@ -125,13 +125,13 @@ class ExerciseViewModel(
 /**
  * Factory para crear el ViewModel
  */
-class ExerciseViewModelFactory(
-    private val repository: ExerciseRepository
+class EjercicioViewModelFactory(
+    private val repository: EjercicioRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ExerciseViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(EjercicioViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ExerciseViewModel(repository) as T
+            return EjercicioViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
