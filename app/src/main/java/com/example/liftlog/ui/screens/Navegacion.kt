@@ -13,7 +13,8 @@ import com.example.liftlog.model.AuthResult
 enum class Screen {
     LOGIN,
     REGISTER,
-    HOME
+    HOME,
+    NOSOTROS
 }
 
 @Composable
@@ -51,6 +52,10 @@ fun AppNavigation() {
                         currentUser = (authState as AuthResult.Success).user
                         currentScreen = Screen.HOME
                     }
+                },
+                onAboutClick = {
+                    // Ir a la pantalla de Sobre Nosotros
+                    currentScreen = Screen.NOSOTROS
                 }
             )
         }
@@ -87,6 +92,15 @@ fun AppNavigation() {
                     }
                 )
             }
+        }
+
+        Screen.NOSOTROS -> {
+            PantallaNosotros(
+                onNavigateBack = {
+                    viewModel.clearAuthState()
+                    currentScreen = Screen.LOGIN
+                }
+            )
         }
     }
 }

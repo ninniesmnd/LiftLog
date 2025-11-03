@@ -1,5 +1,6 @@
 package com.example.liftlog.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -16,6 +19,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.liftlog.R
 import com.example.liftlog.model.AuthResult
 
 @Composable
@@ -24,7 +28,8 @@ fun PantallaLogin(
     isLoading: Boolean,
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit,
-    onAuthSuccess: () -> Unit
+    onAuthSuccess: () -> Unit,
+    onAboutClick: () -> Unit = {} // Nuevo parámetro
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -62,15 +67,29 @@ fun PantallaLogin(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Surface(
+                modifier = Modifier
+                    .size(200.dp)
+                    .padding(vertical = 20.dp),
+                color = Color.Transparent
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_letras),
+                    contentDescription = "Logo de LiftLog",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
             // Título
+            /*
             Text(
                 text = "LiftLog",
-                fontSize = 32.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = darkColor,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
+            */
             Text(
                 text = "Inicia sesión para continuar",
                 fontSize = 16.sp,
@@ -210,6 +229,28 @@ fun PantallaLogin(
                         color = primaryColor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            //Boton nosotros
+            TextButton(
+                onClick = onAboutClick,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "ℹ️",
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Text(
+                        text = "Sobre Nosotros",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
