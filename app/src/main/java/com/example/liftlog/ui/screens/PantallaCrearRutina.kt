@@ -22,7 +22,7 @@ import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.RutinaEjercicioCrossRef
 import com.example.liftlog.viewmodel.RutinaViewModel
 
-// Use `val` for immutable properties, which is a Compose best practice
+
 private data class DetallesEjercicioState(
     val series: String = "",
     val repeticiones: String = "",

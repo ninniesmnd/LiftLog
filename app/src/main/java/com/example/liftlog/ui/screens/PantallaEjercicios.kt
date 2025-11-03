@@ -282,7 +282,6 @@ fun PantallaDetalleEjercicio(
                 rutinaViewModel.resetAddEjercicioResult()
             }
             is AddEjercicioResult.Idle -> {
-                // Do nothing
             }
         }
     }
@@ -328,7 +327,6 @@ fun PantallaDetalleEjercicio(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Placeholder for muscle group image
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -359,7 +357,6 @@ fun PantallaDetalleEjercicio(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Input Fields
             when (exercise.categoria) {
                 "Fuerza" -> {
                     OutlinedTextField(

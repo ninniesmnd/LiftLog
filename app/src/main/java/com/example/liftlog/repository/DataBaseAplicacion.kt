@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * Base de datos Room de la aplicación
- * Versión 3: Se añaden campos a la tabla `rutina_ejercicio_cross_ref`
  */
 @Database(
     entities = [Usuario::class, Ejercicio::class, RutinaCompletada::class, Rutina::class, RutinaEjercicioCrossRef::class],

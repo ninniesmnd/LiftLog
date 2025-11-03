@@ -99,7 +99,6 @@ fun PantallaNosotros(
                 Column(
                     modifier = Modifier.padding(24.dp)
                 ) {
-                    // Sección: Acerca de
                     InfoSection(
                         title = "📱 Acerca de la App",
                         content = "LiftLog es tu aplicación de registro y seguimiento de rutinas de ejercicio. Diseñada para ayudarte a alcanzar tus metas de fitness de manera organizada y eficiente."
