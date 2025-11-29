@@ -37,16 +37,20 @@ class AuthRepository(private val usuarioDAO: UsuarioDao) {
                 return@withContext Result.failure(Exception("El nombre no puede estar vacío"))
             }
 
-            // Crear y guardar usuario
+            // Crear usuario
             val user = Usuario(
                 email = request.email.trim().lowercase(),
-                password = request.password, // En producción, usar hash (BCrypt, etc.)
+                password = request.password, // En producción, usar hash
                 nombre = request.nombre.trim()
             )
 
-            usuarioDAO.insertUser(user)
+            // Insertar y obtener el ID generado
+            val newId = usuarioDAO.insertUser(user)
+            
+            // Crear copia del usuario con el ID correcto
+            val registeredUser = user.copy(id = newId)
 
-            Result.success(user)
+            Result.success(registeredUser)
         } catch (e: Exception) {
             Result.failure(e)
         }

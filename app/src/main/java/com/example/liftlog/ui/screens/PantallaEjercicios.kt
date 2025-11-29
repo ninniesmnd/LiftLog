@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaEjercicios(userId: Int, rutinaViewModel: RutinaViewModel) {
+fun PantallaEjercicios(userId: Long, rutinaViewModel: RutinaViewModel) {
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
     val repository = EjercicioRepository(
@@ -172,12 +172,12 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono según categoría
+            // Icono según categoría (Manejo de nulos)
             val icon = when (exercise.categoria) {
                 "Cardio" -> "🏃"
                 "Fuerza" -> "🏋️"
                 "Flexibilidad" -> "🧘"
-                else -> "💪"
+                else -> "💪" 
             }
 
             Text(
@@ -195,8 +195,9 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = darkColor
                 )
+                // CORRECCIÓN: Manejo de nulo en descripción
                 Text(
-                    text = exercise.descripcion,
+                    text = exercise.descripcion ?: "Sin descripción",
                     fontSize = 14.sp,
                     color = Color.Gray,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -233,7 +234,8 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                 color = primaryColor.copy(alpha = 0.2f)
             ) {
                 Text(
-                    text = exercise.categoria,
+                    // CORRECCIÓN: Manejo de nulo en categoría
+                    text = exercise.categoria ?: "General",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -348,8 +350,9 @@ fun PantallaDetalleEjercicio(
                 fontWeight = FontWeight.Bold,
                 color = darkColor
             )
+            // CORRECCIÓN: Manejo de nulo en descripción
             Text(
-                text = exercise.descripcion,
+                text = exercise.descripcion ?: "Sin descripción",
                 fontSize = 16.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 4.dp)
@@ -357,6 +360,7 @@ fun PantallaDetalleEjercicio(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Manejo de campos según categoría (null-safe)
             when (exercise.categoria) {
                 "Fuerza" -> {
                     OutlinedTextField(
@@ -439,6 +443,7 @@ fun PantallaDetalleEjercicio(
                         )
                     )
                 }
+                // Si la categoría es null o desconocida, no mostramos campos específicos
             }
 
             Spacer(modifier = Modifier.height(32.dp))

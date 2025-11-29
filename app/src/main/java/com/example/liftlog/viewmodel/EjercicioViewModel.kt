@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 /**
  * ViewModel para manejar la lógica de ejercicios y rutinas
+ * Actualizado userId a Long
  */
 class EjercicioViewModel(
     private val ejercicioRepository: EjercicioRepository
@@ -31,12 +32,12 @@ class EjercicioViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private var currentUserId: Int = 0
+    private var currentUserId: Long = 0 // Actualizado a Long
 
     /**
      * Establece el usuario actual
      */
-    fun setCurrentUser(userId: Int) {
+    fun setCurrentUser(userId: Long) { // Actualizado a Long
         currentUserId = userId
         loadExercises()
         loadCompletedRoutines()
@@ -48,9 +49,41 @@ class EjercicioViewModel(
      */
     private fun loadExercises() {
         viewModelScope.launch {
+            _isLoading.value = true
             ejercicioRepository.getAllExercises().collect { exerciseList ->
                 _exercises.value = exerciseList
             }
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Crea un nuevo ejercicio en el servidor
+     */
+    fun createNewExercise(ejercicio: Ejercicio) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = ejercicioRepository.createEjercicioRemoto(ejercicio)
+            if (result.isSuccess) {
+                loadExercises() // Recargar la lista tras crear
+            } else {
+                // Manejar error
+            }
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Elimina un ejercicio del servidor
+     */
+    fun deleteExercise(ejercicioId: Long) { // Actualizado a Long (ya era Long pero aseguro)
+        viewModelScope.launch {
+             _isLoading.value = true
+             val result = ejercicioRepository.deleteEjercicioRemoto(ejercicioId)
+             if (result.isSuccess) {
+                 loadExercises()
+             }
+             _isLoading.value = false
         }
     }
 
@@ -70,14 +103,11 @@ class EjercicioViewModel(
      */
     fun loadUserStats() {
         viewModelScope.launch {
-            _isLoading.value = true
             try {
                 val stats = ejercicioRepository.getUserStats(currentUserId)
                 _userStats.value = stats
             } catch (e: Exception) {
                 _userStats.value = Estadisticas(0, 0, 0, emptyList())
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -109,6 +139,7 @@ class EjercicioViewModel(
      */
     fun filterByCategory(categoria: String) {
         viewModelScope.launch {
+            _isLoading.value = true
             if (categoria == "Todos") {
                 ejercicioRepository.getAllExercises().collect { exerciseList ->
                     _exercises.value = exerciseList
@@ -118,6 +149,7 @@ class EjercicioViewModel(
                     _exercises.value = exerciseList
                 }
             }
+            _isLoading.value = false
         }
     }
 }

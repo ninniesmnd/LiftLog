@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * DAO para operaciones con ejercicios
+ * IDs actualizados a Long
  */
 @Dao
 interface EjercicioDAO {
@@ -28,7 +29,7 @@ interface EjercicioDAO {
     suspend fun deleteExercise(exercise: Ejercicio)
 
     @Query("SELECT * FROM ejercicios WHERE id = :exerciseId")
-    suspend fun getExerciseById(exerciseId: Int): Ejercicio?
+    suspend fun getExerciseById(exerciseId: Long): Ejercicio?
 
     @Query("SELECT COUNT(*) FROM ejercicios")
     suspend fun getExercisesCount(): Int
@@ -36,15 +37,16 @@ interface EjercicioDAO {
 
 /**
  * DAO para rutinas completadas
+ * Actualizado userId a Long para consistencia
  */
 @Dao
 interface CompletedRoutineDao {
 
     @Query("SELECT * FROM rutinas_completadas WHERE userId = :userId ORDER BY fecha DESC")
-    fun getCompletedRoutinesByUser(userId: Int): Flow<List<RutinaCompletada>>
+    fun getCompletedRoutinesByUser(userId: Long): Flow<List<RutinaCompletada>>
 
     @Query("SELECT * FROM rutinas_completadas WHERE userId = :userId ORDER BY fecha DESC LIMIT 10")
-    fun getRecentRoutines(userId: Int): Flow<List<RutinaCompletada>>
+    fun getRecentRoutines(userId: Long): Flow<List<RutinaCompletada>>
 
     @Insert
     suspend fun insertCompletedRoutine(routine: RutinaCompletada)
@@ -53,14 +55,14 @@ interface CompletedRoutineDao {
     suspend fun deleteCompletedRoutine(routine: RutinaCompletada)
 
     @Query("SELECT COUNT(*) FROM rutinas_completadas WHERE userId = :userId")
-    suspend fun getTotalRoutinesCount(userId: Int): Int
+    suspend fun getTotalRoutinesCount(userId: Long): Int
 
     @Query("SELECT SUM(duracionMinutos) FROM rutinas_completadas WHERE userId = :userId")
-    suspend fun getTotalMinutes(userId: Int): Int?
+    suspend fun getTotalMinutes(userId: Long): Int?
 
     @Query("SELECT SUM(caloriasQuemadas) FROM rutinas_completadas WHERE userId = :userId")
-    suspend fun getTotalCalories(userId: Int): Int?
+    suspend fun getTotalCalories(userId: Long): Int?
 
     @Query("SELECT nombreEjercicio, COUNT(*) as count FROM rutinas_completadas WHERE userId = :userId GROUP BY nombreEjercicio ORDER BY count DESC LIMIT 3")
-    suspend fun getFavoriteExercises(userId: Int): List<EjercicioFavorito>
+    suspend fun getFavoriteExercises(userId: Long): List<EjercicioFavorito>
 }

@@ -25,7 +25,7 @@ interface RutinaDAO {
 
     @Transaction
     @Query("SELECT * FROM rutinas WHERE id = :rutinaId")
-    fun getRutinaConEjercicios(rutinaId: Int): Flow<RutinaConEjercicios>
+    fun getRutinaConEjercicios(rutinaId: Long): Flow<RutinaConEjercicios>
 
     @Query("SELECT * FROM rutinas")
     fun getAllRutinas(): Flow<List<Rutina>>

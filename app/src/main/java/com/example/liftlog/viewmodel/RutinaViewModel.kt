@@ -28,19 +28,25 @@ class RutinaViewModel(
     private val ejercicioRepository: EjercicioRepository
 ) : ViewModel() {
 
+    // Rutinas locales (con relaciones Room)
     private val _rutinasConEjercicios = MutableStateFlow<List<RutinaConEjercicios>>(emptyList())
     val rutinasConEjercicios: StateFlow<List<RutinaConEjercicios>> = _rutinasConEjercicios.asStateFlow()
 
+    // Rutinas (mezcla de locales o remotas según la implementación)
     private val _rutinas = MutableStateFlow<List<Rutina>>(emptyList())
     val rutinas: StateFlow<List<Rutina>> = _rutinas.asStateFlow()
 
     private val _addEjercicioResult = MutableStateFlow<AddEjercicioResult>(AddEjercicioResult.Idle)
     val addEjercicioResult: StateFlow<AddEjercicioResult> = _addEjercicioResult.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     val allExercises: StateFlow<List<Ejercicio>> = ejercicioRepository.getAllExercises()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
+        // Carga inicial de datos locales
         viewModelScope.launch {
             rutinaRepository.getRutinasConEjercicios().collect {
                 _rutinasConEjercicios.value = it
@@ -53,21 +59,55 @@ class RutinaViewModel(
         }
     }
 
+    /**
+     * Carga las rutinas desde el microservicio para un usuario específico
+     */
+    fun loadRemoteRoutines(userId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            rutinaRepository.getRutinasRemotas(userId).collect { remoteRoutines ->
+                // Aquí podrías decidir si reemplazar las locales o mezclarlas
+                // Por ahora, actualizamos la lista observable
+                if (remoteRoutines.isNotEmpty()) {
+                    _rutinas.value = remoteRoutines
+                }
+            }
+            _isLoading.value = false
+        }
+    }
+
     fun saveRoutine(nombre: String, descripcion: String, ejercicios: List<RutinaEjercicioCrossRef>, onSaveFinished: () -> Unit) {
         viewModelScope.launch {
+            _isLoading.value = true
             val nuevaRutina = Rutina(nombre = nombre, descripcion = descripcion)
+            
+            // 1. Guardar en base de datos local (para funcionamiento offline)
             rutinaRepository.insertRutinaWithEjercicios(nuevaRutina, ejercicios)
+
+            // 2. Guardar en microservicio
+            try {
+                rutinaRepository.createRutinaRemota(nuevaRutina)
+                // Nota: Actualmente enviamos la rutina básica. Si el backend soporta recibir 
+                // los ejercicios en el mismo endpoint, deberíamos ajustar el modelo DTO.
+            } catch (e: Exception) {
+                // Manejar error de red (quizás guardar en una cola de pendientes)
+                e.printStackTrace()
+            }
+            
+            _isLoading.value = false
             onSaveFinished()
         }
     }
 
-    fun addEjercicioToRutina(rutinaId: Int, ejercicioId: Int, series: Int?, repeticiones: Int?, peso: Double?, tiempo: Int?) {
+    fun addEjercicioToRutina(rutinaId: Long, ejercicioId: Long, series: Int?, repeticiones: Int?, peso: Double?, tiempo: Int?) {
         viewModelScope.launch {
             val rutinaConEjercicios = rutinaRepository.getRutinaConEjercicios(rutinaId).first()
             if (rutinaConEjercicios.ejercicios.any { it.id == ejercicioId }) {
                 _addEjercicioResult.value = AddEjercicioResult.Error("El ejercicio ya existe en la rutina.")
             } else {
                 rutinaRepository.addEjercicioToRutina(rutinaId, ejercicioId, series, repeticiones, peso, tiempo)
+                // Nota: Aquí también deberíamos llamar a un endpoint para actualizar la relación en el servidor
+                // si tu API tiene un endpoint tipo POST /rutina/{id}/ejercicio
                 _addEjercicioResult.value = AddEjercicioResult.Success
             }
         }
@@ -79,7 +119,15 @@ class RutinaViewModel(
 
     fun deleteRoutine(rutina: Rutina) {
         viewModelScope.launch {
+            // Borrar localmente
             rutinaRepository.deleteRutina(rutina)
+            
+            // Borrar remotamente
+            try {
+                rutinaRepository.deleteRutinaRemota(rutina.id)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

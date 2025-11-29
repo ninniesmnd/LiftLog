@@ -44,7 +44,8 @@ fun PantallaCrearRutina(
     var descripcionRutina by remember { mutableStateOf("") }
     val allExercises by viewModel.allExercises.collectAsState()
     
-    val selectedEjercicios = remember { mutableStateMapOf<Int, DetallesEjercicioState>() }
+    // Usar Long como clave para los IDs de ejercicios
+    val selectedEjercicios = remember { mutableStateMapOf<Long, DetallesEjercicioState>() }
 
     Scaffold(
         topBar = {
@@ -230,6 +231,7 @@ fun PantallaCrearRutina(
                                             )
                                         )
                                     }
+                                    else -> { /* Handle unknown or null categories gracefully, e.g., default to Cardio/Flexibility fields or show nothing */ }
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -247,7 +249,7 @@ fun PantallaCrearRutina(
                         when (ejercicio.categoria) {
                             "Fuerza" -> detalles.peso.isBlank() || detalles.series.isBlank() || detalles.repeticiones.isBlank()
                             "Cardio", "Flexibilidad" -> detalles.tiempo.isBlank()
-                            else -> false
+                            else -> false // Unknown categories are considered valid (no fields required) or handle as needed
                         }
                     }
 
@@ -256,7 +258,7 @@ fun PantallaCrearRutina(
                     } else {
                         val ejerciciosParaGuardar = selectedEjercicios.map { (id, detalles) ->
                             RutinaEjercicioCrossRef(
-                                rutinaId = 0, // Room will replace this
+                                rutinaId = 0L,
                                 ejercicioId = id,
                                 series = detalles.series.toIntOrNull(),
                                 repeticiones = detalles.repeticiones.toIntOrNull(),
