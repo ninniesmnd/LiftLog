@@ -152,7 +152,28 @@ fun PantallaCrearRutina(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 when (ejercicio.categoria) {
-                                    "Fuerza" -> {
+                                    "Cardio", "Flexibilidad" -> {
+                                        OutlinedTextField(
+                                            value = detallesState.tiempo,
+                                            onValueChange = { newValue ->
+                                                selectedEjercicios[ejercicio.id] = detallesState.copy(tiempo = newValue.filter { it.isDigit() })
+                                            },
+                                            label = { Text("Tiempo (min)") },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedTextColor = darkColor,
+                                                unfocusedTextColor = darkColor,
+                                                cursorColor = primaryColor,
+                                                focusedBorderColor = primaryColor,
+                                                unfocusedBorderColor = Color.Gray,
+                                                focusedLabelColor = primaryColor,
+                                                unfocusedLabelColor = Color.Gray
+                                            )
+                                        )
+                                    }
+                                    // Por defecto (Fuerza o null) mostramos campos de peso/series/reps
+                                    else -> {
                                         OutlinedTextField(
                                             value = detallesState.peso,
                                             onValueChange = { newValue ->
@@ -211,27 +232,6 @@ fun PantallaCrearRutina(
                                             )
                                         )
                                     }
-                                    "Cardio", "Flexibilidad" -> {
-                                        OutlinedTextField(
-                                            value = detallesState.tiempo,
-                                            onValueChange = { newValue ->
-                                                selectedEjercicios[ejercicio.id] = detallesState.copy(tiempo = newValue.filter { it.isDigit() })
-                                            },
-                                            label = { Text("Tiempo (min)") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = darkColor,
-                                                unfocusedTextColor = darkColor,
-                                                cursorColor = primaryColor,
-                                                focusedBorderColor = primaryColor,
-                                                unfocusedBorderColor = Color.Gray,
-                                                focusedLabelColor = primaryColor,
-                                                unfocusedLabelColor = Color.Gray
-                                            )
-                                        )
-                                    }
-                                    else -> { /* Handle unknown or null categories gracefully, e.g., default to Cardio/Flexibility fields or show nothing */ }
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -247,9 +247,9 @@ fun PantallaCrearRutina(
                     val isInvalid = selectedEjercicios.any { (id, detalles) ->
                         val ejercicio = allExercises.find { it.id == id } ?: return@any true
                         when (ejercicio.categoria) {
-                            "Fuerza" -> detalles.peso.isBlank() || detalles.series.isBlank() || detalles.repeticiones.isBlank()
                             "Cardio", "Flexibilidad" -> detalles.tiempo.isBlank()
-                            else -> false // Unknown categories are considered valid (no fields required) or handle as needed
+                            // Para otros (incluyendo null), validamos peso/series/reps
+                            else -> detalles.peso.isBlank() || detalles.series.isBlank() || detalles.repeticiones.isBlank()
                         }
                     }
 
