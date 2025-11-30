@@ -526,7 +526,8 @@ fun PantallaDetalleEjercicio(
                         Toast.makeText(context, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show()
                     } else {
                         selectedRutina?.let {
-                            rutinaViewModel.addEjercicioToRutina(it.id, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
+                            // CORRECCION: forzar unwrap porque una rutina existente siempre tiene ID
+                            rutinaViewModel.addEjercicioToRutina(it.id!!, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
                         }
                     }
                 },

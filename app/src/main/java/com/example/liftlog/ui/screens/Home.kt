@@ -33,11 +33,21 @@ fun PantallaPrincipal(
     // Inicializamos el ViewModel aquí para compartirlo entre pantallas
     val context = LocalContext.current
     val database = AppDatabase.getDatabase(context)
-    val rutinaRepository = RutinaRepository(database.rutinaDao())
+    
+    // Repositorios SOLO ONLINE (sin DAOs locales)
+    val rutinaRepository = RutinaRepository()
     val ejercicioRepository = EjercicioRepository(database.exerciseDao(), database.completedRoutineDao())
+    
     val rutinaViewModel: RutinaViewModel = viewModel(
         factory = RutinaViewModelFactory(rutinaRepository, ejercicioRepository)
     )
+
+    // Configurar usuario actual para cargar rutinas remotas
+    LaunchedEffect(user.id) {
+        // user.id es Long?, usamos elvis operator para seguridad
+        val userIdStr = (user.id ?: 0L).toString()
+        rutinaViewModel.setUser(userIdStr)
+    }
 
     if (showCreateRoutineScreen) {
         PantallaCrearRutina(
@@ -122,7 +132,8 @@ fun PantallaPrincipalConNavegacion(
             modifier = Modifier.padding(paddingValues)
         ) { page ->
             when (page) {
-                0 -> PantallaEjercicios(userId = user.id, rutinaViewModel = viewModel)
+                // CORRECCIÓN FINAL: Usamos elvis operator (?: 0L) para pasar un Long seguro a PantallaEjercicios
+                0 -> PantallaEjercicios(userId = user.id ?: 0L, rutinaViewModel = viewModel)
                 1 -> PantallaRutinas(
                     viewModel = viewModel,
                     onGoToCreateRoutine = onGoToCreateRoutine

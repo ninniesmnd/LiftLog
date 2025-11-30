@@ -4,24 +4,22 @@ import android.util.Patterns
 import com.example.liftlog.model.LoginRequest
 import com.example.liftlog.model.RegisterRequest
 import com.example.liftlog.model.Usuario
+import com.example.liftlog.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Repositorio para manejar las operaciones de autenticación
+ * Repositorio para manejar las operaciones de autenticación usando Microservicio de Usuarios (Puerto 8091)
  */
 class AuthRepository(private val usuarioDAO: UsuarioDao) {
 
+    private val apiService = RetrofitClient.usuarioService
+
     /**
-     * Registra un nuevo usuario
+     * Registra un nuevo usuario en el microservicio
      */
     suspend fun register(request: RegisterRequest): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
-            // Verificar si el email ya existe
-            if (usuarioDAO.checkEmailExists(request.email)) {
-                return@withContext Result.failure(Exception("El correo electrónico ya está registrado"))
-            }
-
             // Validar email
             if (!isValidEmail(request.email)) {
                 return@withContext Result.failure(Exception("Correo electrónico inválido"))
@@ -37,27 +35,33 @@ class AuthRepository(private val usuarioDAO: UsuarioDao) {
                 return@withContext Result.failure(Exception("El nombre no puede estar vacío"))
             }
 
-            // Crear usuario
+            // Crear objeto Usuario para enviar
+            // IMPORTANTE: id debe ser explícitamente null para que el backend lo trate como INSERT
             val user = Usuario(
+                id = null, 
                 email = request.email.trim().lowercase(),
-                password = request.password, // En producción, usar hash
+                password = request.password,
                 nombre = request.nombre.trim()
             )
 
-            // Insertar y obtener el ID generado
-            val newId = usuarioDAO.insertUser(user)
+            // Llamar al microservicio
+            val response = apiService.crearUsuario(user)
             
-            // Crear copia del usuario con el ID correcto
-            val registeredUser = user.copy(id = newId)
-
-            Result.success(registeredUser)
+            if (response.isSuccessful && response.body() != null) {
+                // Éxito: Retornamos el usuario creado por el servidor (con ID asignado)
+                Result.success(response.body()!!)
+            } else {
+                // Fallo: Extraemos mensaje de error si es posible
+                val errorMsg = response.errorBody()?.string() ?: "Error en el servidor: ${response.code()}"
+                Result.failure(Exception(errorMsg))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     /**
-     * Inicia sesión con credenciales
+     * Inicia sesión usando el microservicio
      */
     suspend fun login(request: LoginRequest): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
@@ -66,16 +70,18 @@ class AuthRepository(private val usuarioDAO: UsuarioDao) {
                 return@withContext Result.failure(Exception("Complete todos los campos"))
             }
 
-            // Buscar usuario
-            val user = usuarioDAO.login(
-                request.email.trim().lowercase(),
-                request.password
-            )
+            // Llamar al endpoint de login
+            val response = apiService.login(request)
 
-            if (user != null) {
-                Result.success(user)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
             } else {
-                Result.failure(Exception("Credenciales incorrectas"))
+                // Si retorna 404 o 401, es credenciales incorrectas
+                if (response.code() == 404 || response.code() == 401) {
+                    Result.failure(Exception("Credenciales incorrectas"))
+                } else {
+                    Result.failure(Exception("Error al iniciar sesión: ${response.code()}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -87,27 +93,5 @@ class AuthRepository(private val usuarioDAO: UsuarioDao) {
      */
     private fun isValidEmail(email: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
-
-    /**
-     * Obtiene un usuario por email
-     */
-    suspend fun getUserByEmail(email: String): Usuario? = withContext(Dispatchers.IO) {
-        try {
-            usuarioDAO.getUserByEmail(email.trim().lowercase())
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    /**
-     * Obtiene todos los usuarios (solo para debug/admin)
-     */
-    suspend fun getAllUsers(): List<Usuario> = withContext(Dispatchers.IO) {
-        try {
-            usuarioDAO.getAllUsers()
-        } catch (e: Exception) {
-            emptyList()
-        }
     }
 }

@@ -16,11 +16,11 @@ import kotlinx.coroutines.launch
 
 /**
  * Base de datos Room de la aplicación
- * Versión actualizada a 5 para forzar recreación y resolver error de integridad
+ * Versión actualizada a 6 para reflejar cambios en nulabilidad de IDs en entidades
  */
 @Database(
     entities = [Usuario::class, Ejercicio::class, RutinaCompletada::class, Rutina::class, RutinaEjercicioCrossRef::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,8 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "fitness_app_database"
                 )
-                    // Permitimos migración destructiva.
-                    // Al subir la versión a 5, esto borrará la BD existente y corregirá el error de integridad.
+                    // Permitimos migración destructiva para limpiar datos viejos y aplicar cambios de esquema
                     .fallbackToDestructiveMigration()
                     .addCallback(DatabaseCallback())
                     .build()
@@ -70,14 +69,14 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         suspend fun populateEjercicios(exerciseDao: EjercicioDAO) {
-            // Usamos IDs explícitos Long (ej. 1L) o dejamos que autogenerate lo maneje (id = 0L)
+            // Poblamos datos iniciales locales si la base está vacía
             
             // Cardio
             exerciseDao.insertExercise(Ejercicio(nombre = "Correr", descripcion = "Trote a ritmo moderado", categoria = "Cardio", duracionMinutos = 30, calorias = 300))
             exerciseDao.insertExercise(Ejercicio(nombre = "Saltar la cuerda", descripcion = "Alta intensidad", categoria = "Cardio", duracionMinutos = 15, calorias = 200))
             exerciseDao.insertExercise(Ejercicio(nombre = "Ciclismo", descripcion = "Pedaleo continuo", categoria = "Cardio", duracionMinutos = 45, calorias = 400))
             
-            // Fuerza - Si asignamos IDs manuales, deben ser Long
+            // Fuerza - Asignamos IDs manuales para asegurar orden/referencia si fuera necesario, aunque autoGenerate lo manejaría
             exerciseDao.insertExercise(Ejercicio(id = 4L, nombre = "Flexiones", descripcion = "Push-ups para pecho y brazos", categoria = "Fuerza", duracionMinutos = 10, calorias = 80))
             exerciseDao.insertExercise(Ejercicio(id = 5L, nombre = "Sentadillas", descripcion = "Para piernas y glúteos", categoria = "Fuerza", duracionMinutos = 15, calorias = 120))
             exerciseDao.insertExercise(Ejercicio(id = 6L, nombre = "Plancha", descripcion = "Isométrico para core", categoria = "Fuerza", duracionMinutos = 5, calorias = 50))

@@ -1,8 +1,8 @@
 package com.example.liftlog.repository
 
-import com.example.liftlog.model.RutinaCompletada
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.Estadisticas
+import com.example.liftlog.model.RutinaCompletada
 import com.example.liftlog.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -11,19 +11,18 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 /**
- * Repositorio para manejar operaciones de ejercicios y rutinas
- * Actualizado para usar el microservicio en puerto 8092
- * Actualizado userId a Long
+ * Repositorio de Ejercicios - SOLO ONLINE
+ * Se elimina la dependencia de la base de datos local para la fuente de verdad.
  */
 class EjercicioRepository(
     private val exerciseDao: EjercicioDAO,
     private val completedRoutineDao: CompletedRoutineDao
 ) {
-    // Instancia del servicio API de Ejercicios
+    // Instancia del servicio API de Ejercicios (8092)
     private val apiService = RetrofitClient.ejercicioService
 
     /**
-     * Obtiene todos los ejercicios desde el microservicio (Puerto 8092).
+     * Obtiene todos los ejercicios EXCLUSIVAMENTE desde el microservicio.
      */
     fun getAllExercises(): Flow<List<Ejercicio>> = flow {
         try {
@@ -31,10 +30,10 @@ class EjercicioRepository(
             if (response.isSuccessful && response.body() != null) {
                 emit(response.body()!!)
             } else {
-                // Fallback: si la red falla, podrías usar la BD local
                 emit(emptyList()) 
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             emit(emptyList())
         }
     }.flowOn(Dispatchers.IO)
@@ -56,7 +55,7 @@ class EjercicioRepository(
         }
     }.flowOn(Dispatchers.IO)
 
-    // --- Métodos CRUD para el microservicio ---
+    // --- Métodos CRUD Online ---
 
     suspend fun createEjercicioRemoto(ejercicio: Ejercicio): Result<Ejercicio> = withContext(Dispatchers.IO) {
         try {
@@ -84,53 +83,24 @@ class EjercicioRepository(
         }
     }
 
-    // --- Métodos para Rutinas Completadas (Mantenemos local por ahora) ---
-
-    suspend fun completeRoutine(
-        userId: Long, // Actualizado a Long
-        exercise: Ejercicio,
-        notas: String = ""
-    ): Result<RutinaCompletada> = withContext(Dispatchers.IO) {
-        try {
-            val routine = RutinaCompletada(
-                userId = userId,
-                ejercicioId = exercise.id,
-                nombreEjercicio = exercise.nombre,
-                duracionMinutos = exercise.duracionMinutos,
-                caloriasQuemadas = exercise.calorias,
-                notas = notas
-            )
-
-            completedRoutineDao.insertCompletedRoutine(routine)
-            Result.success(routine)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    // --- Rutinas Completadas (Historial) ---
+    // Estos métodos se mantienen para compatibilidad con ViewModel pero no hacen nada o devuelven vacío
+    // ya que no hay backend para historial y se pidió eliminar lo local.
+    
+    suspend fun completeRoutine(userId: Long, exercise: Ejercicio, notas: String = ""): Result<RutinaCompletada> {
+        return Result.failure(Exception("Función no disponible en modo solo-online"))
     }
 
-    fun getCompletedRoutines(userId: Long): Flow<List<RutinaCompletada>> { // Actualizado a Long
-        return completedRoutineDao.getCompletedRoutinesByUser(userId)
+    fun getCompletedRoutines(userId: Long): Flow<List<RutinaCompletada>> = flow {
+        emit(emptyList())
     }
 
-    fun getRecentRoutines(userId: Long): Flow<List<RutinaCompletada>> { // Actualizado a Long
-        return completedRoutineDao.getRecentRoutines(userId)
+    // ESTE MÉTODO ERA EL QUE FALTABA O DABA ERROR
+    suspend fun deleteCompletedRoutine(routine: RutinaCompletada) {
+        // No-op
     }
 
-    suspend fun deleteCompletedRoutine(routine: RutinaCompletada) = withContext(Dispatchers.IO) {
-        completedRoutineDao.deleteCompletedRoutine(routine)
-    }
-
-    suspend fun getUserStats(userId: Long): Estadisticas = withContext(Dispatchers.IO) { // Actualizado a Long
-        val totalRoutines = completedRoutineDao.getTotalRoutinesCount(userId)
-        val totalMinutes = completedRoutineDao.getTotalMinutes(userId) ?: 0
-        val totalCalories = completedRoutineDao.getTotalCalories(userId) ?: 0
-        val favorites = completedRoutineDao.getFavoriteExercises(userId)
-
-        Estadisticas(
-            totalRutinas = totalRoutines,
-            totalMinutos = totalMinutes,
-            totalCalorias = totalCalories,
-            rutinasFavoritas = favorites
-        )
+    suspend fun getUserStats(userId: Long): Estadisticas {
+        return Estadisticas(0, 0, 0, emptyList())
     }
 }

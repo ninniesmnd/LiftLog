@@ -5,10 +5,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // URL Base común para el emulador
+    // URL Base común para el emulador (localhost)
     private const val BASE_HOST = "http://10.0.2.2"
 
-    // Cliente para el microservicio de Ejercicios (Puerto 8092)
+    // 1. Microservicio de Usuarios (8091)
+    private val retrofitUsuarios: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("$BASE_HOST:8091/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // 2. Microservicio de Ejercicios (8092)
     private val retrofitEjercicios: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl("$BASE_HOST:8092/")
@@ -16,7 +24,7 @@ object RetrofitClient {
             .build()
     }
 
-    // Cliente para el microservicio de Rutinas (Puerto 8093)
+    // 3. Microservicio de Rutinas (8093)
     private val retrofitRutinas: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl("$BASE_HOST:8093/")
@@ -24,12 +32,28 @@ object RetrofitClient {
             .build()
     }
 
+    // 4. Microservicio de Unión (8094)
+    private val retrofitUnion: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("$BASE_HOST:8094/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
     // Instancias públicas de las APIs
+    val usuarioService: UsuarioApiService by lazy {
+        retrofitUsuarios.create(UsuarioApiService::class.java)
+    }
+
     val ejercicioService: EjercicioApiService by lazy {
         retrofitEjercicios.create(EjercicioApiService::class.java)
     }
 
     val rutinaService: RutinaApiService by lazy {
         retrofitRutinas.create(RutinaApiService::class.java)
+    }
+
+    val unionService: UnionApiService by lazy {
+        retrofitUnion.create(UnionApiService::class.java)
     }
 }
