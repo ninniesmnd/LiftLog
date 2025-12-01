@@ -256,7 +256,8 @@ fun EjercicioItem(ejercicio: Ejercicio, detalles: com.example.liftlog.model.Ruti
                     else -> "${ejercicio.duracionMinutos} min | ${ejercicio.calorias} kcal"
                 }
             } else {
-                ejercicio.categoria
+                // CORRECCIÓN: Manejo de nulo si categoría no existe
+                ejercicio.categoria ?: "Sin categoría"
             }
 
             Text(

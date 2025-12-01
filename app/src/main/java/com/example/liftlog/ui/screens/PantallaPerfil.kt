@@ -51,8 +51,20 @@ fun PantallaPerfil(
     val primaryColor = Color(0xFFFFCB74)
     val darkColor = Color(0xFF2C2C2C)
 
-    val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale("es", "ES"))
-    val memberSince = dateFormat.format(Date(user.fechaRegistro))
+    // Manejo seguro de fecha
+    val memberSince = try {
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale("es", "ES"))
+        dateFormat.format(Date(user.fechaRegistro))
+    } catch (e: Exception) {
+        "Fecha desconocida"
+    }
+    
+    // Manejo seguro de inicial del nombre
+    val userInitial = if (user.nombre.isNotEmpty()) {
+        user.nombre.first().uppercaseChar().toString()
+    } else {
+        "?"
+    }
 
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -89,7 +101,7 @@ fun PantallaPerfil(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = user.nombre.first().uppercaseChar().toString(),
+                            text = userInitial,
                             fontSize = 48.sp,
                             fontWeight = FontWeight.Bold,
                             color = primaryColor
@@ -98,7 +110,7 @@ fun PantallaPerfil(
                 }
 
                 Text(
-                    text = user.nombre,
+                    text = user.nombre.ifEmpty { "Usuario" },
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = darkColor,
@@ -106,7 +118,7 @@ fun PantallaPerfil(
                 )
 
                 Text(
-                    text = user.email,
+                    text = user.email.ifEmpty { "Sin email" },
                     fontSize = 14.sp,
                     color = darkColor.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 4.dp)

@@ -2,20 +2,32 @@ package com.example.liftlog.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 
 /**
  * Entidad de Ejercicio
+ * Campos nombre y descripcion hechos nulables para máxima seguridad contra crashes de GSON
  */
 @Entity(tableName = "ejercicios")
 data class Ejercicio(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val nombre: String,
-    val descripcion: String,
-    val categoria: String, // Ejemplo: Cardio, Fuerza, Flexibilidad
-    val duracionMinutos: Int,
-    val calorias: Int,
-    val imagenUrl: String = "" // URL o recurso de imagen
+    val id: Long = 0,
+    
+    // Aunque backend dice not null, protegemos por si acaso
+    val nombre: String = "", 
+    
+    // Backend permite nulos en descripción
+    val descripcion: String? = null, 
+    
+    val categoria: String? = null, 
+
+    @SerializedName("duracionDefault")
+    val duracionMinutos: Int = 0,
+
+    @SerializedName("caloriasDefault")
+    val calorias: Int = 0,
+    
+    val imagenUrl: String? = null
 )
 
 /**
@@ -24,9 +36,9 @@ data class Ejercicio(
 @Entity(tableName = "rutinas_completadas")
 data class RutinaCompletada(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val userId: Int,
-    val ejercicioId: Int,
+    val id: Long = 0,
+    val userId: Long, 
+    val ejercicioId: Long,
     val nombreEjercicio: String,
     val fecha: Long = System.currentTimeMillis(),
     val duracionMinutos: Int,
@@ -34,9 +46,6 @@ data class RutinaCompletada(
     val notas: String = ""
 )
 
-/**
- * DTO para mostrar estadísticas del usuario
- */
 data class Estadisticas(
     val totalRutinas: Int,
     val totalMinutos: Int,
@@ -44,11 +53,6 @@ data class Estadisticas(
     val rutinasFavoritas: List<EjercicioFavorito>
 )
 
-/**
- * DTO para consulta de ejercicios favoritos
- * Esta clase es necesaria para que Room pueda mapear correctamente
- * los resultados de la consulta SQL getFavoriteExercises
- */
 data class EjercicioFavorito(
     val nombreEjercicio: String,
     val count: Int

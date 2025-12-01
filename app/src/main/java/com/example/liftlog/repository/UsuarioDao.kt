@@ -7,6 +7,7 @@ import com.example.liftlog.model.Usuario
 
 /**
  * operaciones de base de datos de usuarios
+ * Actualizado ID a Long
  */
 @Dao
 interface UsuarioDao {
@@ -27,5 +28,5 @@ interface UsuarioDao {
     suspend fun getAllUsers(): List<Usuario>
 
     @Query("DELETE FROM usuarios WHERE id = :userId")
-    suspend fun deleteUser(userId: Int)
+    suspend fun deleteUser(userId: Long) // Actualizado a Long
 }

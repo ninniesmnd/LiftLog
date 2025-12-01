@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.liftlog.model.Ejercicio
 import com.example.liftlog.model.RutinaEjercicioCrossRef
 import com.example.liftlog.viewmodel.RutinaViewModel
+import java.util.Locale
 
 
 private data class DetallesEjercicioState(
@@ -44,7 +45,8 @@ fun PantallaCrearRutina(
     var descripcionRutina by remember { mutableStateOf("") }
     val allExercises by viewModel.allExercises.collectAsState()
     
-    val selectedEjercicios = remember { mutableStateMapOf<Int, DetallesEjercicioState>() }
+    // Usar Long como clave para los IDs de ejercicios
+    val selectedEjercicios = remember { mutableStateMapOf<Long, DetallesEjercicioState>() }
 
     Scaffold(
         topBar = {
@@ -150,86 +152,88 @@ fun PantallaCrearRutina(
                                 modifier = Modifier.fillMaxWidth().padding(start = 48.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                when (ejercicio.categoria) {
-                                    "Fuerza" -> {
-                                        OutlinedTextField(
-                                            value = detallesState.peso,
-                                            onValueChange = { newValue ->
-                                                val filtered = newValue.filter { it.isDigit() || it == '.' }
-                                                if (filtered.count { it == '.' } <= 1) {
-                                                    selectedEjercicios[ejercicio.id] = detallesState.copy(peso = filtered)
-                                                }
-                                            },
-                                            label = { Text("Peso (kg)") },
-                                            modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = darkColor,
-                                                unfocusedTextColor = darkColor,
-                                                cursorColor = primaryColor,
-                                                focusedBorderColor = primaryColor,
-                                                unfocusedBorderColor = Color.Gray,
-                                                focusedLabelColor = primaryColor,
-                                                unfocusedLabelColor = Color.Gray
-                                            )
+                                // Normalizar categoría para comparación insensible a mayúsculas
+                                val categoria = ejercicio.categoria?.lowercase(Locale.getDefault()) ?: ""
+                                val esCardioOFlexibilidad = categoria.contains("cardio") || categoria.contains("flexibilidad")
+
+                                if (esCardioOFlexibilidad) {
+                                    OutlinedTextField(
+                                        value = detallesState.tiempo,
+                                        onValueChange = { newValue ->
+                                            selectedEjercicios[ejercicio.id] = detallesState.copy(tiempo = newValue.filter { it.isDigit() })
+                                        },
+                                        label = { Text("Tiempo (min)") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = darkColor,
+                                            unfocusedTextColor = darkColor,
+                                            cursorColor = primaryColor,
+                                            focusedBorderColor = primaryColor,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedLabelColor = primaryColor,
+                                            unfocusedLabelColor = Color.Gray
                                         )
-                                        OutlinedTextField(
-                                            value = detallesState.series,
-                                            onValueChange = { newValue ->
-                                                selectedEjercicios[ejercicio.id] = detallesState.copy(series = newValue.filter { it.isDigit() })
-                                            },
-                                            label = { Text("Series") },
-                                            modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = darkColor,
-                                                unfocusedTextColor = darkColor,
-                                                cursorColor = primaryColor,
-                                                focusedBorderColor = primaryColor,
-                                                unfocusedBorderColor = Color.Gray,
-                                                focusedLabelColor = primaryColor,
-                                                unfocusedLabelColor = Color.Gray
-                                            )
+                                    )
+                                } else {
+                                    // Por defecto (Fuerza o null) mostramos campos de peso/series/reps
+                                    OutlinedTextField(
+                                        value = detallesState.peso,
+                                        onValueChange = { newValue ->
+                                            val filtered = newValue.filter { it.isDigit() || it == '.' }
+                                            if (filtered.count { it == '.' } <= 1) {
+                                                selectedEjercicios[ejercicio.id] = detallesState.copy(peso = filtered)
+                                            }
+                                        },
+                                        label = { Text("Peso (kg)") },
+                                        modifier = Modifier.weight(1f),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = darkColor,
+                                            unfocusedTextColor = darkColor,
+                                            cursorColor = primaryColor,
+                                            focusedBorderColor = primaryColor,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedLabelColor = primaryColor,
+                                            unfocusedLabelColor = Color.Gray
                                         )
-                                        OutlinedTextField(
-                                            value = detallesState.repeticiones,
-                                            onValueChange = { newValue ->
-                                                selectedEjercicios[ejercicio.id] = detallesState.copy(repeticiones = newValue.filter { it.isDigit() })
-                                            },
-                                            label = { Text("Reps") },
-                                            modifier = Modifier.weight(1f),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = darkColor,
-                                                unfocusedTextColor = darkColor,
-                                                cursorColor = primaryColor,
-                                                focusedBorderColor = primaryColor,
-                                                unfocusedBorderColor = Color.Gray,
-                                                focusedLabelColor = primaryColor,
-                                                unfocusedLabelColor = Color.Gray
-                                            )
+                                    )
+                                    OutlinedTextField(
+                                        value = detallesState.series,
+                                        onValueChange = { newValue ->
+                                            selectedEjercicios[ejercicio.id] = detallesState.copy(series = newValue.filter { it.isDigit() })
+                                        },
+                                        label = { Text("Series") },
+                                        modifier = Modifier.weight(1f),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = darkColor,
+                                            unfocusedTextColor = darkColor,
+                                            cursorColor = primaryColor,
+                                            focusedBorderColor = primaryColor,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedLabelColor = primaryColor,
+                                            unfocusedLabelColor = Color.Gray
                                         )
-                                    }
-                                    "Cardio", "Flexibilidad" -> {
-                                        OutlinedTextField(
-                                            value = detallesState.tiempo,
-                                            onValueChange = { newValue ->
-                                                selectedEjercicios[ejercicio.id] = detallesState.copy(tiempo = newValue.filter { it.isDigit() })
-                                            },
-                                            label = { Text("Tiempo (min)") },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                            colors = OutlinedTextFieldDefaults.colors(
-                                                focusedTextColor = darkColor,
-                                                unfocusedTextColor = darkColor,
-                                                cursorColor = primaryColor,
-                                                focusedBorderColor = primaryColor,
-                                                unfocusedBorderColor = Color.Gray,
-                                                focusedLabelColor = primaryColor,
-                                                unfocusedLabelColor = Color.Gray
-                                            )
+                                    )
+                                    OutlinedTextField(
+                                        value = detallesState.repeticiones,
+                                        onValueChange = { newValue ->
+                                            selectedEjercicios[ejercicio.id] = detallesState.copy(repeticiones = newValue.filter { it.isDigit() })
+                                        },
+                                        label = { Text("Reps") },
+                                        modifier = Modifier.weight(1f),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedTextColor = darkColor,
+                                            unfocusedTextColor = darkColor,
+                                            cursorColor = primaryColor,
+                                            focusedBorderColor = primaryColor,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedLabelColor = primaryColor,
+                                            unfocusedLabelColor = Color.Gray
                                         )
-                                    }
+                                    )
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -244,10 +248,13 @@ fun PantallaCrearRutina(
                 onClick = {
                     val isInvalid = selectedEjercicios.any { (id, detalles) ->
                         val ejercicio = allExercises.find { it.id == id } ?: return@any true
-                        when (ejercicio.categoria) {
-                            "Fuerza" -> detalles.peso.isBlank() || detalles.series.isBlank() || detalles.repeticiones.isBlank()
-                            "Cardio", "Flexibilidad" -> detalles.tiempo.isBlank()
-                            else -> false
+                        val categoria = ejercicio.categoria?.lowercase(Locale.getDefault()) ?: ""
+                        val esCardioOFlexibilidad = categoria.contains("cardio") || categoria.contains("flexibilidad")
+
+                        if (esCardioOFlexibilidad) {
+                            detalles.tiempo.isBlank()
+                        } else {
+                            detalles.peso.isBlank() || detalles.series.isBlank() || detalles.repeticiones.isBlank()
                         }
                     }
 
@@ -256,7 +263,7 @@ fun PantallaCrearRutina(
                     } else {
                         val ejerciciosParaGuardar = selectedEjercicios.map { (id, detalles) ->
                             RutinaEjercicioCrossRef(
-                                rutinaId = 0, // Room will replace this
+                                rutinaId = 0L,
                                 ejercicioId = id,
                                 series = detalles.series.toIntOrNull(),
                                 repeticiones = detalles.repeticiones.toIntOrNull(),
