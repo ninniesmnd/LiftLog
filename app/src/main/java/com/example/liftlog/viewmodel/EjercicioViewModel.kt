@@ -32,12 +32,12 @@ class EjercicioViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private var currentUserId: Long = 0 // Actualizado a Long
+    private var currentUserId: Long = 0 
 
     /**
      * Establece el usuario actual
      */
-    fun setCurrentUser(userId: Long) { // Actualizado a Long
+    fun setCurrentUser(userId: Long) { 
         currentUserId = userId
         loadExercises()
         loadCompletedRoutines()
@@ -76,7 +76,7 @@ class EjercicioViewModel(
     /**
      * Elimina un ejercicio del servidor
      */
-    fun deleteExercise(ejercicioId: Long) { // Actualizado a Long (ya era Long pero aseguro)
+    fun deleteExercise(ejercicioId: Long) {
         viewModelScope.launch {
              _isLoading.value = true
              val result = ejercicioRepository.deleteEjercicioRemoto(ejercicioId)
@@ -136,17 +136,20 @@ class EjercicioViewModel(
 
     /**
      * Filtra ejercicios por categoría
+     * CORRECCIÓN: Comparación insensible a mayúsculas/minúsculas para soportar backend
      */
     fun filterByCategory(categoria: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            if (categoria == "Todos") {
-                ejercicioRepository.getAllExercises().collect { exerciseList ->
-                    _exercises.value = exerciseList
-                }
-            } else {
-                ejercicioRepository.getExercisesByCategory(categoria).collect { exerciseList ->
-                    _exercises.value = exerciseList
+            // Obtenemos todos primero para filtrar en memoria (ya que el repo cachea o trae todo)
+            ejercicioRepository.getAllExercises().collect { allExercises ->
+                if (categoria.equals("Todos", ignoreCase = true)) {
+                    _exercises.value = allExercises
+                } else {
+                    val filtrados = allExercises.filter { 
+                        it.categoria?.equals(categoria, ignoreCase = true) == true 
+                    }
+                    _exercises.value = filtrados
                 }
             }
             _isLoading.value = false

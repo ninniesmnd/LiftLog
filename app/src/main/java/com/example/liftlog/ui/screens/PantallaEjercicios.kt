@@ -37,6 +37,7 @@ import com.example.liftlog.viewmodel.EjercicioViewModel
 import com.example.liftlog.viewmodel.EjercicioViewModelFactory
 import com.example.liftlog.viewmodel.RutinaViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,12 +173,14 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono según categoría (Manejo de nulos)
-            val icon = when (exercise.categoria) {
-                "Cardio" -> "🏃"
-                "Fuerza" -> "🏋️"
-                "Flexibilidad" -> "🧘"
-                else -> "💪" 
+            // Normalizar categoría para comparación insensible a mayúsculas
+            val categoria = exercise.categoria?.lowercase(Locale.getDefault()) ?: ""
+            
+            val icon = when {
+                categoria.contains("cardio") -> "🏃"
+                categoria.contains("fuerza") -> "🏋️"
+                categoria.contains("flexibilidad") -> "🧘"
+                else -> "💪"
             }
 
             Text(
@@ -195,7 +198,6 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = darkColor
                 )
-                // CORRECCIÓN: Manejo de nulo en descripción
                 Text(
                     text = exercise.descripcion ?: "Sin descripción",
                     fontSize = 14.sp,
@@ -234,7 +236,6 @@ fun ExerciseCard(exercise: Ejercicio, onClick: () -> Unit) {
                 color = primaryColor.copy(alpha = 0.2f)
             ) {
                 Text(
-                    // CORRECCIÓN: Manejo de nulo en categoría
                     text = exercise.categoria ?: "General",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     fontSize = 12.sp,
@@ -350,7 +351,6 @@ fun PantallaDetalleEjercicio(
                 fontWeight = FontWeight.Bold,
                 color = darkColor
             )
-            // CORRECCIÓN: Manejo de nulo en descripción
             Text(
                 text = exercise.descripcion ?: "Sin descripción",
                 fontSize = 16.sp,
@@ -360,90 +360,90 @@ fun PantallaDetalleEjercicio(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Manejo de campos según categoría (null-safe)
-            when (exercise.categoria) {
-                "Fuerza" -> {
-                    OutlinedTextField(
-                        value = peso,
-                        onValueChange = { newValue ->
-                            val filteredValue = newValue.filter { it.isDigit() || it == '.' }
-                            if (filteredValue.count { it == '.' } <= 1) {
-                                peso = filteredValue
-                            }
-                        },
-                        label = { Text("Peso (kg)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = darkColor,
-                            unfocusedTextColor = darkColor,
-                            cursorColor = primaryColor,
-                            focusedBorderColor = primaryColor,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedLabelColor = primaryColor,
-                            unfocusedLabelColor = Color.Gray
-                        )
+            // Manejo de campos según categoría, normalizando texto
+            val categoria = exercise.categoria?.lowercase(Locale.getDefault()) ?: ""
+            val esCardioOFlexibilidad = categoria.contains("cardio") || categoria.contains("flexibilidad")
+
+            if (esCardioOFlexibilidad) {
+                OutlinedTextField(
+                    value = tiempo,
+                    onValueChange = { newValue ->
+                        tiempo = newValue.filter { it.isDigit() }
+                    },
+                    label = { Text("Tiempo (minutos)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = darkColor,
+                        unfocusedTextColor = darkColor,
+                        cursorColor = primaryColor,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = series,
-                        onValueChange = { newValue ->
-                            series = newValue.filter { it.isDigit() }
-                        },
-                        label = { Text("Series") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = darkColor,
-                            unfocusedTextColor = darkColor,
-                            cursorColor = primaryColor,
-                            focusedBorderColor = primaryColor,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedLabelColor = primaryColor,
-                            unfocusedLabelColor = Color.Gray
-                        )
+                )
+            } else {
+                // Fuerza o General (Fallback)
+                OutlinedTextField(
+                    value = peso,
+                    onValueChange = { newValue ->
+                        val filteredValue = newValue.filter { it.isDigit() || it == '.' }
+                        if (filteredValue.count { it == '.' } <= 1) {
+                            peso = filteredValue
+                        }
+                    },
+                    label = { Text("Peso (kg)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = darkColor,
+                        unfocusedTextColor = darkColor,
+                        cursorColor = primaryColor,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = repeticiones,
-                        onValueChange = { newValue ->
-                            repeticiones = newValue.filter { it.isDigit() }
-                        },
-                        label = { Text("Repeticiones") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = darkColor,
-                            unfocusedTextColor = darkColor,
-                            cursorColor = primaryColor,
-                            focusedBorderColor = primaryColor,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedLabelColor = primaryColor,
-                            unfocusedLabelColor = Color.Gray
-                        )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = series,
+                    onValueChange = { newValue ->
+                        series = newValue.filter { it.isDigit() }
+                    },
+                    label = { Text("Series") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = darkColor,
+                        unfocusedTextColor = darkColor,
+                        cursorColor = primaryColor,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray
                     )
-                }
-                "Cardio", "Flexibilidad" -> {
-                    OutlinedTextField(
-                        value = tiempo,
-                        onValueChange = { newValue ->
-                            tiempo = newValue.filter { it.isDigit() }
-                        },
-                        label = { Text("Tiempo (minutos)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = darkColor,
-                            unfocusedTextColor = darkColor,
-                            cursorColor = primaryColor,
-                            focusedBorderColor = primaryColor,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedLabelColor = primaryColor,
-                            unfocusedLabelColor = Color.Gray
-                        )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = repeticiones,
+                    onValueChange = { newValue ->
+                        repeticiones = newValue.filter { it.isDigit() }
+                    },
+                    label = { Text("Repeticiones") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = darkColor,
+                        unfocusedTextColor = darkColor,
+                        cursorColor = primaryColor,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = Color.Gray
                     )
-                }
-                // Si la categoría es null o desconocida, no mostramos campos específicos
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -516,17 +516,17 @@ fun PantallaDetalleEjercicio(
 
             Button(
                 onClick = {
-                    val isInvalid = when (exercise.categoria) {
-                        "Fuerza" -> peso.isBlank() || series.isBlank() || repeticiones.isBlank()
-                        "Cardio", "Flexibilidad" -> tiempo.isBlank()
-                        else -> false
+                    // Validar según categoría normalizada
+                    val isInvalid = if (esCardioOFlexibilidad) {
+                        tiempo.isBlank()
+                    } else {
+                        peso.isBlank() || series.isBlank() || repeticiones.isBlank()
                     }
 
                     if (isInvalid) {
                         Toast.makeText(context, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show()
                     } else {
                         selectedRutina?.let {
-                            // CORRECCION: forzar unwrap porque una rutina existente siempre tiene ID
                             rutinaViewModel.addEjercicioToRutina(it.id!!, exercise.id, series.toIntOrNull(), repeticiones.toIntOrNull(), peso.toDoubleOrNull(), tiempo.toIntOrNull())
                         }
                     }
